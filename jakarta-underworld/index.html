@@ -115,7 +115,7 @@
       <h1>JAKARTA<br>UNDERWORLD</h1>
       <div class="sub">— GANGSTER SEMARANG —</div>
       <p>Kamu <b style="color:#ffd43b">RAKA</b>, anak jalanan dari Semarang. Di kota hujan ini kamu mulai dari kurir kecil — tagih hutang, balapan liar, rebut wilayah, kabur dari polisi — sampai jadi bos gangster paling ditakuti.</p>
-      <p>🕹️ Joystick kiri buat jalan • 👊 tinju • 🚗 naik mobil/motor<br>⭐ Bikin onar = bintang polisi naik. Bintang 5 = helikopter ikut ngejar!<br>🏍️ Misi sampingan: nyuri motor & 💰 rampok Toko Emas!</p>
+      <p>🕹️ Joystick kiri buat jalan • 👊 tinju • 🚗 naik mobil/motor<br>🗺️ Peta RAKSASA: Kota Lama, 🛣️ Jalan Tol, 🏙️ Jakarta Modern, ⚓ Pelabuhan, 🏡 Kampung!<br>⭐ Bikin onar = bintang polisi naik. Bintang 5 = helikopter ikut ngejar!<br>🏍️ Misi sampingan: nyuri motor & 💰 rampok Toko Emas!</p>
       <button class="bigbtn" id="btnStart">🌧️ MASUK KOTA</button>
     </div>
   </div>
@@ -316,14 +316,14 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 wrap.insertBefore(renderer.domElement, wrap.firstChild);
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x0a0e18, 30, 130);
+scene.fog = new THREE.Fog(0x0a0e18, 34, 215);
 const camera = new THREE.PerspectiveCamera(58, 1, .1, 400);
 function layout(){
   const w = wrap.clientWidth, h = wrap.clientHeight;
   renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', layout);
-const hemi = new THREE.HemisphereLight(0x5a6f9e, 0x1c1712, .62); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0x5a6f9e, 0x1c1712, .68); scene.add(hemi);
 const moon = new THREE.DirectionalLight(0x8fa8d8, .5);
 moon.position.set(-40, 60, -30); moon.castShadow = true;
 moon.shadow.mapSize.set(1024, 1024);
@@ -368,8 +368,8 @@ const asphaltTex = canvasTex(128, 128, (g, w, h) => {
   for(let i = 0; i < 500; i++){ g.fillStyle = `rgba(255,255,255,${Math.random() * .05})`; g.fillRect(Math.random() * w, Math.random() * h, 1.6, 1.6); }
   for(let i = 0; i < 24; i++){ g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(Math.random() * w, Math.random() * h, rnd(4, 16), rnd(2, 5)); }
 });
-asphaltTex.wrapS = asphaltTex.wrapT = THREE.RepeatWrapping; asphaltTex.repeat.set(30, 20);
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 170),
+asphaltTex.wrapS = asphaltTex.wrapT = THREE.RepeatWrapping; asphaltTex.repeat.set(52, 32);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(480, 300),
   new THREE.MeshPhongMaterial({ map: asphaltTex, shininess: 55, specular: 0x2a3648 }));
 ground.rotation.x = -Math.PI / 2; ground.position.y = -.02; ground.receiveShadow = true; scene.add(ground);
 const roadTex = canvasTex(256, 64, (g, w, h) => {
@@ -382,7 +382,7 @@ const roadMat = new THREE.MeshPhongMaterial({ map: roadTex, shininess: 110, spec
 const road1 = new THREE.Mesh(new THREE.PlaneGeometry(150, 10), roadMat);
 road1.rotation.x = -Math.PI / 2; road1.position.set(0, .01, 2); road1.receiveShadow = true; scene.add(road1);
 const road2 = new THREE.Mesh(new THREE.PlaneGeometry(9, 96), roadMat.clone());
-road2.material.map = roadTex.clone(); road2.material.map.rotation = Math.PI / 2; road2.material.map.repeat.set(8, 1);
+road2.material.map = roadTex.clone(); road2.material.map.needsUpdate = true; road2.material.map.rotation = Math.PI / 2; road2.material.map.repeat.set(8, 1);
 road2.rotation.x = -Math.PI / 2; road2.rotation.z = Math.PI / 2; road2.position.set(18, .01, 0); road2.receiveShadow = true; scene.add(road2);
 const walkMat = new THREE.MeshLambertMaterial({ color: 0x3d4149 });
 box(150, .14, 2.2, walkMat, 0, .07, -3.8); box(150, .14, 2.2, walkMat, 0, .07, 7.8);
@@ -413,6 +413,8 @@ function facadeTex(base, litRatio){
 }
 const towerTexA = facadeTex('#2c3038', .42), towerTexB = facadeTex('#38322c', .34), shopTex = facadeTex('#41454e', .5);
 const towerMatA = new THREE.MeshLambertMaterial({ map: towerTexA });
+const mexMats = ['#c94f30', '#d9a441', '#2f8f7a', '#b8457c', '#7a4a9e', '#3e7cb1', '#cf6a2d']
+  .map(c => new THREE.MeshLambertMaterial({ map: facadeTex(c, .48) }));
 const towerMatB = new THREE.MeshLambertMaterial({ map: towerTexB });
 const shopMat = new THREE.MeshLambertMaterial({ map: shopTex });
 const roofMat = new THREE.MeshLambertMaterial({ color: 0x1e2126 });
@@ -436,10 +438,10 @@ const cityBlocks = [
   [-58, 36, 10, 12, 8], [-28, 37, 11, 16, 9], [6, 36, 10, 13, 8], [36, 37, 11, 15, 9], [58, 36, 10, 12, 8],
 ];
 for(const [x, z, w, h, d] of cityBlocks)
-  building(x, z, w, h, d, Math.random() < .5 ? towerMatA : towerMatB);
+  building(x, z, w, h, d, Math.random() < .42 ? mexMats[rndi(0, mexMats.length - 1)] : (Math.random() < .5 ? towerMatA : towerMatB));
 /* ruko-ruko di pinggir jalan utama */
 const shopSpots = [[-36, -9.5], [-24, -9.5], [-6, -9.5], [10, -9.5], [38, -9.5], [56, -9.5], [-22, 13.5], [30, 13.5], [46, 13.5], [-50, 13.5]];
-for(const [x, z] of shopSpots) building(x, z, rnd(6, 8), rnd(4.5, 6.5), 5, shopMat);
+shopSpots.forEach(([x, z], i) => building(x, z, rnd(6, 8), rnd(4.5, 6.5), 5, mexMats[i % mexMats.length]));
 /* papan neon */
 function neonSign(text, color, w, x, y, z, ry){
   const tex = canvasTex(256, 64, (g, cw, ch) => {
@@ -562,6 +564,200 @@ neonSign('WILAYAH GARONG', '#ff2d2d', 6.4, -54, 3.6, -19.6);
   g.position.set(26, 0, 15); scene.add(g);
   neonSign('POLISI', '#74c0fc', 4.4, 26, 2.8, 12.4, Math.PI);
 }
+/* ================= EKSPANSI: TOL + 3 DISTRIK ================= */
+const extraColliders = [];
+function xCol(x, z, w, d){ extraColliders.push([x, z, w / 2 + .45, d / 2 + .45]); }
+/* jalan tol selatan + gerbang tol */
+const hwTex = roadTex.clone(); hwTex.repeat.set(34, 1); hwTex.needsUpdate = true;
+const highway = new THREE.Mesh(new THREE.PlaneGeometry(430, 18),
+  new THREE.MeshPhongMaterial({ map: hwTex, shininess: 110, specular: 0x55688a }));
+highway.rotation.x = -Math.PI / 2; highway.position.set(0, .012, 62); highway.receiveShadow = true; scene.add(highway);
+const connTex = roadTex.clone(); connTex.repeat.set(4, 1); connTex.needsUpdate = true;
+const conn = new THREE.Mesh(new THREE.PlaneGeometry(11, 44),
+  new THREE.MeshPhongMaterial({ map: connTex, shininess: 110, specular: 0x55688a }));
+conn.rotation.x = -Math.PI / 2; conn.rotation.z = Math.PI / 2; conn.position.set(18, .011, 33); conn.receiveShadow = true; scene.add(conn);
+const conn2 = conn.clone(); conn2.position.set(140, .011, 33); scene.add(conn2);
+const conn3 = conn.clone(); conn3.position.set(-140, .011, 33); scene.add(conn3);
+{ // gerbang tol
+  const g = new THREE.Group();
+  const pilM = new THREE.MeshLambertMaterial({ color: 0x9aa2ad });
+  box(.8, 5.4, .8, pilM, 0, 2.7, -7.5, g); box(.8, 5.4, .8, pilM, 0, 2.7, 0, g); box(.8, 5.4, .8, pilM, 0, 2.7, 7.5, g);
+  box(1.2, 1, 19, new THREE.MeshLambertMaterial({ color: 0x1c4e9e }), 0, 5.6, 0, g);
+  box(4.5, .18, .5, new THREE.MeshLambertMaterial({ color: 0xe8590c }), -2.4, 1, -3.8, g).rotation.z = -.5;
+  box(4.5, .18, .5, new THREE.MeshLambertMaterial({ color: 0xe8590c }), -2.4, 1, 3.8, g).rotation.z = -.5;
+  g.position.set(60, 0, 62); scene.add(g);
+  neonSign('GERBANG TOL', '#74c0fc', 10, 60, 6.8, 61);
+  xCol(60, 54.5, 1.6, 1.6); xCol(60, 62, 1.6, 1.6); xCol(60, 69.5, 1.6, 1.6);
+}
+/* JAKARTA MODERN (timur): menara kaca + mall */
+const glassTex = facadeTex('#2a3d55', .58);
+const glassMat = new THREE.MeshLambertMaterial({ map: glassTex });
+const modernBlocks = [
+  [125, -18, 11, 26, 10], [142, -20, 12, 32, 10], [160, -18, 11, 22, 10], [178, -20, 12, 28, 10],
+  [125, 22, 11, 20, 10], [160, 24, 12, 30, 10], [180, 22, 11, 24, 10], [142, 38, 12, 18, 10], [172, 40, 11, 21, 10],
+];
+for(const [x, z, w, hh, d] of modernBlocks){ building(x, z, w, hh, d, glassMat); xCol(x, z, w, d); }
+{ // mall
+  const g = new THREE.Group();
+  const b = box(30, 8, 14, new THREE.MeshLambertMaterial({ map: glassTex }), 0, 4, 0, g); b.castShadow = true;
+  box(31, .5, 15, roofMat, 0, 8.2, 0, g);
+  g.position.set(150, 0, -2); scene.add(g); xCol(150, -2, 30, 14);
+  neonSign('MALL GRAND CITY', '#22d3ee', 13, 150, 6.4, 5.4);
+}
+neonSign('HOTEL BINTANG 5', '#ffd43b', 8, 142, 9, -14.6);
+warung(132, 12, Math.PI, 0x862e9c);
+/* jalan-jalan distrik modern */
+const modRoadTex = roadTex.clone(); modRoadTex.repeat.set(8, 1); modRoadTex.needsUpdate = true;
+const mr1 = new THREE.Mesh(new THREE.PlaneGeometry(110, 11), new THREE.MeshPhongMaterial({ map: modRoadTex, shininess: 100, specular: 0x55688a }));
+mr1.rotation.x = -Math.PI / 2; mr1.position.set(150, .011, 8); scene.add(mr1);
+const mr2 = mr1.clone(); mr2.rotation.z = Math.PI / 2; mr2.position.set(150, .011, -14); scene.add(mr2);
+/* PELABUHAN (barat): gudang, kontainer, crane, air */
+const portGround = new THREE.Mesh(new THREE.PlaneGeometry(110, 95),
+  new THREE.MeshPhongMaterial({ color: 0x272c34, shininess: 60, specular: 0x33404f }));
+portGround.rotation.x = -Math.PI / 2; portGround.position.set(-152, .005, -5); portGround.receiveShadow = true; scene.add(portGround);
+const water = new THREE.Mesh(new THREE.PlaneGeometry(90, 150),
+  new THREE.MeshPhongMaterial({ color: 0x0d2f4a, shininess: 190, specular: 0x9fc8ee, transparent: true, opacity: .94 }));
+water.rotation.x = -Math.PI / 2; water.position.set(-235, -.04, -5); scene.add(water);
+box(3, 1.2, 120, new THREE.MeshLambertMaterial({ color: 0x3d434d }), -192, .6, -5);
+const whMat = new THREE.MeshLambertMaterial({ color: 0x5c5148 });
+for(const [x, z] of [[-128, -28], [-152, -30], [-176, -26], [-140, 18]]){
+  const g = new THREE.Group();
+  const b = box(17, 6.5, 11, whMat, 0, 3.25, 0, g); b.castShadow = true;
+  box(18, .4, 12, roofMat, 0, 6.7, 0, g);
+  g.position.set(x, 0, z); scene.add(g); xCol(x, z, 17, 11);
+}
+neonSign('PELABUHAN TANJUNG', '#69db7c', 10, -140, 5, 10.5);
+const contColors = [0xc2255c, 0x1971c2, 0xe8590c, 0x2f9e44, 0x862e9c, 0xb5893c];
+for(let i = 0; i < 16; i++){
+  const cx = -168 + (i % 4) * 7.5, cz = -8 + Math.floor(i / 4) * 6.5;
+  const c = box(6.2, 2.6, 2.5, new THREE.MeshLambertMaterial({ color: contColors[i % 6] }), cx, 1.3 + (i % 3 === 0 ? 2.6 : 0), cz);
+  c.castShadow = true;
+  if(i % 4 === 0) xCol(cx, cz, 6.2, 2.5);
+}
+{ // crane pelabuhan
+  const g = new THREE.Group();
+  const cm = new THREE.MeshLambertMaterial({ color: 0xd98a1f });
+  box(.7, 15, .7, cm, -4, 7.5, 0, g); box(.7, 15, .7, cm, 4, 7.5, 0, g);
+  box(15, .8, .8, cm, 0, 15, 0, g);
+  box(.08, 6, .08, poleMat, 5.5, 11.8, 0, g);
+  box(2.4, 2.2, 2.2, new THREE.MeshLambertMaterial({ color: 0x1971c2 }), 5.5, 7.6, 0, g);
+  g.position.set(-158, 0, -14); scene.add(g); xCol(-162, -14, 1.6, 1.6); xCol(-154, -14, 1.6, 1.6);
+}
+/* KAMPUNG HALAMAN (utara): rumah kecil + pohon */
+const kampungGround = new THREE.Mesh(new THREE.PlaneGeometry(230, 42),
+  new THREE.MeshPhongMaterial({ color: 0x2c2822, shininess: 25, specular: 0x222222 }));
+kampungGround.rotation.x = -Math.PI / 2; kampungGround.position.set(0, .004, -84); kampungGround.receiveShadow = true; scene.add(kampungGround);
+const houseColors = [0xe91e63, 0xff9800, 0x00bfa5, 0xffd54f, 0x7c4dff, 0x26c6da, 0xff7043, 0x9ccc65];
+for(let i = 0; i < 13; i++){
+  const hx = -78 + i * 13 + rnd(-2, 2), hz = i % 2 ? -78 : -93, g = new THREE.Group();
+  const b = box(4.4, 2.7, 3.8, new THREE.MeshLambertMaterial({ color: houseColors[i % 6] }), 0, 1.35, 0, g);
+  b.castShadow = true;
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(3.6, 1.6, 4), new THREE.MeshLambertMaterial({ color: 0x7a3b26 }));
+  roof.position.y = 3.5; roof.rotation.y = Math.PI / 4; roof.castShadow = true; g.add(roof);
+  const gl = glowSprite(0xffc46b, 1.6, .7); gl.position.set(0, 1.6, 2); g.add(gl);
+  g.position.set(hx, 0, hz); scene.add(g); xCol(hx, hz, 4.4, 3.8);
+}
+neonSign('KAMPUNG HALAMAN', '#ffa94d', 9, 0, 3.6, -70.5);
+const trunkM = new THREE.MeshLambertMaterial({ color: 0x4a3826 });
+const leafM = new THREE.MeshLambertMaterial({ color: 0x1f4423 });
+function tree(x, z){
+  const g = new THREE.Group();
+  box(.28, 1.6, .28, trunkM, 0, .8, 0, g);
+  const c = new THREE.Mesh(new THREE.ConeGeometry(1.7, 3.4, 8), leafM);
+  c.position.y = 3.1; c.castShadow = true; g.add(c);
+  g.position.set(x, 0, z); scene.add(g); xCol(x, z, .6, .6);
+}
+for(let i = 0; i < 12; i++) tree(-84 + i * 15 + rnd(-3, 3), i % 2 ? -72 : -99);
+for(const [x, z] of [[-70, 12], [70, -12], [120, 14], [-120, -16], [96, 30], [-96, 26]]) tree(x, z);
+/* ================= SENTUHAN MEKSIKO ================= */
+const papelBanners = [];
+function papelPicado(x, z, ry, len){
+  const g = new THREE.Group();
+  const cols = [0xe91e63, 0xff9800, 0x00bfa5, 0xffd54f, 0x7c4dff, 0x26c6da, 0xff5252];
+  const a = new THREE.Vector3(-len / 2, 0, 0), b = new THREE.Vector3(len / 2, 0, 0), pts = [];
+  const n = Math.floor(len / 1.1);
+  for(let k = 0; k <= 20; k++){
+    const t = k / 20, p = a.clone().lerp(b, t); p.y -= Math.sin(t * Math.PI) * .55; pts.push(p);
+  }
+  g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), cableMat));
+  for(let i = 0; i < n; i++){
+    const t = (i + .5) / n;
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(.85, .6),
+      new THREE.MeshBasicMaterial({ color: cols[i % cols.length], side: THREE.DoubleSide }));
+    f.position.set(-len / 2 + t * len, -.32 - Math.sin(t * Math.PI) * .55, 0);
+    g.add(f);
+  }
+  g.position.set(x, 5.1, z); g.rotation.y = ry || 0;
+  g.userData.ph = rnd(0, 9);
+  scene.add(g); papelBanners.push(g); return g;
+}
+papelPicado(-20, 2, 0, 15); papelPicado(6, 2, 0, 15); papelPicado(34, 2, 0, 15);
+papelPicado(42, -24, Math.PI / 2, 14); papelPicado(0, -76, 0, 16); papelPicado(-30, -84, 0, 16);
+papelPicado(150, 8, 0, 16); papelPicado(-140, -2, Math.PI / 2, 14);
+/* mural dinding ala Meksiko */
+function mural(kind, w, x, y, z, ry){
+  const tex = canvasTex(256, 192, (g, cw, ch) => {
+    if(kind === 'calavera'){
+      const gr = g.createLinearGradient(0, 0, cw, ch);
+      gr.addColorStop(0, '#b8457c'); gr.addColorStop(1, '#e8590c');
+      g.fillStyle = gr; g.fillRect(0, 0, cw, ch);
+      g.fillStyle = '#ffd54f'; g.beginPath(); g.arc(52, 46, 22, 0, TAU); g.fill();
+      g.fillStyle = '#ff9800';
+      for(let i = 0; i < 8; i++){ const a2 = i / 8 * TAU; g.beginPath();
+        g.moveTo(52 + Math.cos(a2) * 24, 46 + Math.sin(a2) * 24);
+        g.lineTo(52 + Math.cos(a2 + .3) * 36, 46 + Math.sin(a2 + .3) * 36);
+        g.lineTo(52 + Math.cos(a2) * 24, 46 + Math.sin(a2) * 24); g.fill(); }
+      g.fillStyle = '#f5f0e6'; g.beginPath(); g.arc(160, 88, 44, 0, TAU); g.fill();
+      g.fillRect(128, 118, 64, 30);
+      g.fillStyle = '#14100c';
+      g.beginPath(); g.arc(144, 82, 11, 0, TAU); g.fill();
+      g.beginPath(); g.arc(178, 82, 11, 0, TAU); g.fill();
+      g.beginPath(); g.moveTo(161, 96); g.lineTo(152, 112); g.lineTo(170, 112); g.fill();
+      g.strokeStyle = '#14100c'; g.lineWidth = 2;
+      for(let i = 0; i < 5; i++){ g.beginPath(); g.moveTo(136 + i * 13, 122); g.lineTo(136 + i * 13, 144); g.stroke(); }
+      g.fillStyle = '#00bfa5'; g.beginPath(); g.arc(161, 58, 7, 0, TAU); g.fill();
+      g.fillStyle = '#fff'; g.font = '900 25px Arial'; g.textAlign = 'center';
+      g.shadowColor = '#000'; g.shadowBlur = 5;
+      g.fillText('VIVA LA KOTA!', 128, 176);
+    } else {
+      g.fillStyle = '#0f3d3e'; g.fillRect(0, 0, cw, ch);
+      g.fillStyle = '#ffd54f'; for(let i = 0; i < 14; i++){ const sx = Math.random() * cw, sy = Math.random() * ch;
+        g.beginPath(); g.arc(sx, sy, 2.2, 0, TAU); g.fill(); }
+      g.font = '900 40px Arial'; g.textAlign = 'center';
+      g.shadowColor = '#ff2d2d'; g.shadowBlur = 18; g.fillStyle = '#ff5252';
+      g.fillText('DEVILCUPS', 128, 92);
+      g.shadowBlur = 0; g.fillStyle = '#fff'; g.font = '900 19px Arial';
+      g.fillText('★ SEMARANG PRIDE ★', 128, 128);
+      g.fillStyle = '#00bfa5'; g.font = '700 15px Arial';
+      g.fillText('barrio fuerte — keluarga kuat', 128, 158);
+    }
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * .75),
+    new THREE.MeshBasicMaterial({ map: tex }));
+  m.position.set(x, y, z); m.rotation.y = ry || 0; scene.add(m); return m;
+}
+mural('calavera', 7, -14, 3, -12.85);
+mural('grafiti', 8, -33.4, 2.4, 24, Math.PI / 2);
+mural('calavera', 8, 24, 2.6, -70.8);
+/* kaktus pot */
+const cactusM = new THREE.MeshLambertMaterial({ color: 0x2e7d32 });
+function cactus(x, z){
+  const g = new THREE.Group();
+  box(.5, .4, .5, new THREE.MeshLambertMaterial({ color: 0xa0522d }), 0, .2, 0, g);
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(.13, .16, 1, 8), cactusM);
+  b.position.y = .9; b.castShadow = true; g.add(b);
+  const a1 = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .5, 7), cactusM);
+  a1.position.set(.22, 1.05, 0); a1.rotation.z = -.7; g.add(a1);
+  const a2 = a1.clone(); a2.position.set(-.22, .85, 0); a2.rotation.z = .7; g.add(a2);
+  g.position.set(x, 0, z); scene.add(g);
+}
+cactus(5.6, 14); cactus(10.4, 17); cactus(-35, 20.6); cactus(-41, 20.6); cactus(28, 10.6); cactus(-18, -5.4); cactus(148, 6);
+/* lampu tambahan di distrik baru */
+for(let x = 112; x <= 188; x += 19){ streetLamp(x, 2.6, false); streetLamp(x + 9, 13.4, true); }
+for(let x = -70; x <= 70; x += 23.5) streetLamp(x, 56.5, false);
+for(let x = -64; x <= 64; x += 21){ const s = glowSprite(0xffc46b, 1.1, .8); s.position.set(x, 3.4, -83); scene.add(s); stringBulbs.push(s); }
+for(const lx of [-52, -18, 18, 52]) streetLamp(lx, -85.5, false);
+for(const lx of [-35, 0, 35]) streetLamp(lx, -98.5, true);
 /* motor parkir + gerobak + tong sampah */
 const binMat = new THREE.MeshLambertMaterial({ color: 0x2b6a3f });
 for(let i = 0; i < 8; i++){
@@ -731,8 +927,8 @@ function stepHuman(a, dt, t){
     sp = Math.hypot(vx, vz);
     if(sp > .1){
       moving = 1;
-      a.group.position.x = clamp(a.group.position.x + vx * dt, -72, 72);
-      a.group.position.z = clamp(a.group.position.z + vz * dt, -46, 46);
+      a.group.position.x = clamp(a.group.position.x + vx * dt, -215, 215);
+      a.group.position.z = clamp(a.group.position.z + vz * dt, -128, 128);
       a.phase += dt * sp * 2.6;
       if(a.kind === 'player' && Math.sin(a.phase) > .92) sStep();
     }
@@ -901,6 +1097,15 @@ const trafficCars = trafficDefs.map(([ty, col, x, z], i) => {
   c.lane = z; return c;
 });
 const trafficLoop = [[62, 4.6], [62, -.6], [-62, -.6], [-62, 4.6]];
+/* warga distrik baru */
+[ [138, 4], [158, 12], [168, 2], [146, 14], [-40, -82], [-12, -90], [22, -82], [48, -90], [-150, 2], [-136, -12] ].forEach(([x, z], i) => {
+  const c = CIV_COLORS[(i + 3) % CIV_COLORS.length];
+  const civ = mkActor({ uniform: c, uniformD: 0x2c2f36, skin: [0xb98a64, 0x8a5f3d, 0xd9a37e][i % 3],
+    hijab: i % 6 === 5 ? 0x2e6da4 : 0, female: i % 6 === 5, hair: 0x191410, hp: 40, speed: rnd(1.2, 1.9) },
+    x, z, 'civ', 'Warga');
+  civ.home = civ.group.position.clone();
+  peds.push(civ);
+});
 /* misi sampingan: moge curian dekat Hotel Melati */
 const specialMotor = buildMotor();
 specialMotor.group.position.set(-20, 0, -3.2); specialMotor.heading = Math.PI / 2; specialMotor.owned = false;
@@ -1425,8 +1630,8 @@ function updatePolice(dt){
     if(d < 6) c.speed = Math.min(c.speed, Math.max(4, d * 1.4));
     c.group.position.x += Math.sin(c.heading) * c.speed * dt;
     c.group.position.z += Math.cos(c.heading) * c.speed * dt;
-    c.group.position.x = clamp(c.group.position.x, -70, 70);
-    c.group.position.z = clamp(c.group.position.z, -45, 45);
+    c.group.position.x = clamp(c.group.position.x, -212, 212);
+    c.group.position.z = clamp(c.group.position.z, -125, 125);
     c.group.rotation.y = c.heading - Math.PI / 2;
     for(const w of c.wheels) w.rotation.z -= c.speed * dt / .34;
     if(c.lightBar){
@@ -1465,6 +1670,7 @@ const colliders = [];
 for(const [x, z, w, h, d] of cityBlocks) colliders.push([x, z, w / 2 + .45, d / 2 + .45]);
 for(const [x, z] of shopSpots) colliders.push([x, z, 4, 3]);
 colliders.push([markasPos.x, markasPos.z, 5, 4], [26, 15, 3.5, 3], [8, 15.5, 2, 1.6]);
+if(typeof extraColliders !== 'undefined') for(const c of extraColliders) colliders.push(c);
 function collide(pos){
   for(const [cx, cz, hx, hz] of colliders){
     const dx = pos.x - cx, dz = pos.z - cz;
@@ -1507,8 +1713,8 @@ function updatePlayer(dt){
     if(Math.abs(car.speed) > .4) car.heading -= steer * dt * 1.5 * clamp(Math.abs(car.speed) / 9, .3, 1) * Math.sign(car.speed);
     car.group.position.x += Math.sin(car.heading) * car.speed * dt;
     car.group.position.z += Math.cos(car.heading) * car.speed * dt;
-    car.group.position.x = clamp(car.group.position.x, -70, 70);
-    car.group.position.z = clamp(car.group.position.z, -45, 45);
+    car.group.position.x = clamp(car.group.position.x, -212, 212);
+    car.group.position.z = clamp(car.group.position.z, -125, 125);
     car.group.rotation.y = car.heading - Math.PI / 2;
     for(const w of car.wheels) w.rotation.z -= car.speed * dt / .34;
     if(car.type !== 'motor') P.group.position.copy(car.group.position);
@@ -1704,6 +1910,7 @@ function animate(){
   nextThunder -= rawDt;
   if(nextThunder <= 0){ nextThunder = rnd(9, 22); sThunder(); hemi.intensity = 1.5; setTimeout(() => hemi.intensity = .62, 110); }
   for(const b of stringBulbs) b.material.opacity = .65 + Math.sin(t * 3 + b.position.x) * .25;
+  for(const pb of papelBanners) pb.rotation.z = Math.sin(t * 1.7 + pb.userData.ph) * .045;
   // musik dangdut dekat warung/pasar
   dangdutT -= dt;
   if(dangdutT <= 0 && dangdutGain){
@@ -1744,6 +1951,18 @@ function animate(){
   }
   ctxT -= dt;
   if(ctxT <= 0){ ctxT = .25; if(G.mode === 'play') refreshCtx(); }
+  if(G.mode === 'play'){
+    const zx = focus.x, zz = focus.z;
+    let zone = '🌃 KOTA LAMA — SEMARANG';
+    if(Math.abs(zz - 62) < 13) zone = '🛣️ JALAN TOL ANTAR KOTA';
+    else if(zx > 102) zone = '🏙️ JAKARTA MODERN';
+    else if(zx < -102) zone = '⚓ PELABUHAN TANJUNG';
+    else if(zz < -60) zone = '🏡 KAMPUNG HALAMAN';
+    if(zone !== (G.zone || '')){
+      if(G.zone) toast('📍 Memasuki: ' + zone, 2600);
+      G.zone = zone;
+    }
+  }
   renderer.render(scene, camera);
 }
 layout();
