@@ -87,17 +87,18 @@
 <div id="gameScr">
   <div id="hudTop">
     <button class="iconBtn" id="btnHome">🏠</button>
-    <div id="turnChip">Giliran...</div>
+    <div id="plaque">👑 Mode: Classic 👑</div>
     <button class="iconBtn" id="sndBtn">🔊</button>
   </div>
-  <div id="boardWrap"><div id="board"></div><div id="pawns"></div></div>
-  <div id="panel">
-    <div id="players"></div>
-    <div id="diceBox">
-      <div id="dice"></div>
-      <div id="diceLbl">Tap dadu!</div>
-    </div>
+  <div id="boardWrap"><div id="board"></div><div id="pawns"></div>
+    <div class="corner" data-pl="0" style="top:-17px;left:-4px;"><div class="avatar"></div><div class="plate"></div></div>
+    <div class="corner" data-pl="1" style="top:-17px;right:-4px;flex-direction:row-reverse;"><div class="avatar"></div><div class="plate"></div></div>
+    <div class="corner" data-pl="3" style="bottom:-17px;left:-4px;"><div class="avatar"></div><div class="plate"></div></div>
+    <div class="corner" data-pl="2" style="bottom:-17px;right:-4px;flex-direction:row-reverse;"><div class="avatar"></div><div class="plate"></div></div>
+    <div id="diceTray"><div id="dice"></div></div>
   </div>
+  <div id="diceLbl">Tap dadu!</div>
+  <div id="panel" style="display:none;"><div id="players"></div></div>
 </div>
 <div id="sparks"></div>
 <div id="fx"></div>
@@ -111,10 +112,10 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const TRACK = [[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
 const SAFE = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
 const PLAYERS = [
-  { name:'MERAH', emoji:'😎', color:'#e63946', dark:'#a41623', start:0, home:[[7,1],[7,2],[7,3],[7,4],[7,5]], baseRC:[0,0], label:'KAMU' },
-  { name:'HIJAU', emoji:'🤖', color:'#2fb84d', dark:'#1d7a34', start:13, home:[[1,7],[2,7],[3,7],[4,7],[5,7]], baseRC:[0,9], label:'BOT' },
-  { name:'KUNING', emoji:'😁', color:'#f4b41a', dark:'#b97e06', start:26, home:[[7,13],[7,12],[7,11],[7,10],[7,9]], baseRC:[9,9], label:'BOT' },
-  { name:'BIRU', emoji:'🤩', color:'#3a86ff', dark:'#1d4fa1', start:39, home:[[13,7],[12,7],[11,7],[10,7],[9,7]], baseRC:[9,0], label:'BOT' },
+  { name:'MERAH', emoji:'😎', color:'#e63946', dark:'#a41623', pastel:'#ffd9d9', start:0, home:[[7,1],[7,2],[7,3],[7,4],[7,5]], baseRC:[0,0], label:'KAMU' },
+  { name:'HIJAU', emoji:'🤖', color:'#2fb84d', dark:'#1d7a34', pastel:'#d8f3cf', start:13, home:[[1,7],[2,7],[3,7],[4,7],[5,7]], baseRC:[0,9], label:'BOT' },
+  { name:'KUNING', emoji:'😁', color:'#f4b41a', dark:'#b97e06', pastel:'#fdf0bd', start:26, home:[[7,13],[7,12],[7,11],[7,10],[7,9]], baseRC:[9,9], label:'BOT' },
+  { name:'BIRU', emoji:'🤩', color:'#3a86ff', dark:'#1d4fa1', pastel:'#d2e5ff', start:39, home:[[13,7],[12,7],[11,7],[10,7],[9,7]], baseRC:[9,0], label:'BOT' },
 ];
 const FINISH = 56;
 let G = null;
@@ -141,21 +142,16 @@ function buildBoard(){
     }
     const inner = document.createElement('div'); inner.className = 'baseInner';
     const brand = document.createElement('div');
-    brand.style.cssText = 'position:absolute;left:' + ((bc + 3) / 15 * 100) + '%;top:' + ((br + 3) / 15 * 100) + '%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;z-index:4;';
-    const fimg = document.createElement('img');
-    fimg.src = window.LUDO_FACE; fimg.alt = 'DEVILCUPS';
-    fimg.style.cssText = 'width:40px;height:40px;border-radius:50%;object-fit:cover;border:3px solid ' + P.color + ';box-shadow:0 0 0 2px #c9a227, 0 4px 9px rgba(0,0,0,.35);';
-    const fnm = document.createElement('div');
-    fnm.textContent = 'DEVILCUPS';
-    fnm.style.cssText = 'font-weight:900;font-size:9px;letter-spacing:1px;color:' + P.dark + ';white-space:nowrap;text-shadow:0 0 4px #fff, 0 0 4px #fff, 0 1px 0 #fff;';
-    brand.appendChild(fimg); brand.appendChild(fnm);
+    brand.textContent = '👑 DEVILCUPS 👑';
+    brand.style.cssText = 'position:absolute;left:' + ((bc + 3) / 15 * 100) + '%;top:' + ((br + 3) / 15 * 100) + '%;transform:translate(-50%,-50%);font-weight:900;font-size:10.5px;letter-spacing:1px;color:' + P.dark + ';opacity:.6;white-space:nowrap;pointer-events:none;z-index:4;text-shadow:0 1px 0 rgba(255,255,255,.7);';
     $('board').appendChild(brand);
     inner.style.left = (bc / 15 * 100) + '%'; inner.style.top = (br / 15 * 100) + '%';
     inner.style.width = (6 / 15 * 100) + '%'; inner.style.height = (6 / 15 * 100) + '%'; inner.style.position = 'absolute';
+    inner.style.background = P.pastel; inner.style.borderRadius = '18%';
     $('board').appendChild(inner);
     for(const [dr, dc] of [[1.6, 1.6], [1.6, 4.4], [4.4, 1.6], [4.4, 4.4]]){
       const s = document.createElement('div'); s.className = 'baseSpot';
-      s.style.background = '#fffdf5'; s.style.boxShadow = 'inset 0 0 0 4px ' + P.color + ', inset 0 4px 8px rgba(0,0,0,.2)'; s.style.left = ((bc + dc) / 15 * 100) + '%'; s.style.top = ((br + dr) / 15 * 100) + '%';
+      s.style.background = P.color; s.style.opacity = '.38'; s.style.boxShadow = 'inset 0 3px 7px rgba(0,0,0,.3)'; s.style.left = ((bc + dc) / 15 * 100) + '%'; s.style.top = ((br + dr) / 15 * 100) + '%';
       s.style.width = (1.9 / 15 * 100) + '%'; s.style.height = (1.9 / 15 * 100) + '%'; s.style.position = 'absolute';
       $('board').appendChild(s);
     }
@@ -174,7 +170,7 @@ function buildBoard(){
   ctr.style.cssText = 'position:absolute;left:40%;top:40%;width:20%;height:20%;background:conic-gradient(from 45deg,#e63946 0 25%,#2fb84d 0 50%,#f4b41a 0 75%,#3a86ff 0 100%);display:flex;align-items:center;justify-content:center;font-size:19px;border:2px solid rgba(0,0,0,.25);';
   ctr.textContent = '🏠'; $('board').appendChild(ctr);
   /* panah arah di beberapa sel */
-  const arrows = { '6,3':'▶', '3,6':'▲', '0,7':'▶', '8,11':'◀', '11,8':'▼', '14,7':'◀', '8,3':'◀', '6,11':'▶' };
+  const arrows = { '6,3':'▶', '3,6':'▲', '8,11':'◀', '11,8':'▼', '8,3':'◀', '6,11':'▶', '7,0':'↪', '0,7':'↩', '7,14':'↩', '14,7':'↪' };
   for(const k in arrows){ const d = cells[k]; if(d){ d.classList.add('arrow'); d.dataset.a = arrows[k]; } }
 }
 function baseSpotPos(pl, i){
@@ -197,7 +193,8 @@ function renderPawns(){
       const el = document.createElement('div'); el.className = 'pawn' + (pw.pos === FINISH ? ' finished' : '');
       const P = PLAYERS[pw.pl];
       el.style.background = 'radial-gradient(circle at 32% 28%, #ffffffcc, ' + P.color + ' 45%, ' + P.dark + ')';
-      el.textContent = pw.pos === FINISH ? '⭐' : P.emoji;
+      el.textContent = pw.pos === FINISH ? '⭐' : '👑';
+      if(pw.pos === -1){ el.style.width = '9.6%'; el.style.height = '9.6%'; el.style.fontSize = '15px'; }
       let rr = cell[0], cc = cell[1];
       if(group.length > 1){ const off = [[-.22, -.22], [.22, -.22], [-.22, .22], [.22, .22]][k % 4]; rr += off[0]; cc += off[1]; el.style.width = '5.2%'; el.style.height = '5.2%'; el.style.fontSize = '9px'; }
       el.style.left = ((cc + .5) / 15 * 100) + '%'; el.style.top = ((rr + .5) / 15 * 100) + '%';
@@ -207,18 +204,23 @@ function renderPawns(){
   }
 }
 function renderPlayers(){
-  const box = $('players'); box.innerHTML = '';
-  G.order.forEach(pl => {
-    const P = PLAYERS[pl];
+  document.querySelectorAll('.corner').forEach(cn => {
+    const pl = +cn.dataset.pl, P = PLAYERS[pl];
+    const av = cn.querySelector('.avatar'), plate = cn.querySelector('.plate');
+    if(!G.order.includes(pl)){ cn.style.display = 'none'; return; }
+    cn.style.display = 'flex';
+    if(!av.dataset.done){
+      av.dataset.done = '1';
+      av.innerHTML = '<img src="' + window.LUDO_FACE + '" alt="">';
+      av.style.borderColor = P.color;
+    }
     const fin = G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length;
-    const d = document.createElement('div'); d.className = 'pChip' + (G.turn === pl && !G.over ? ' turn' : '');
-    d.style.borderLeft = '6px solid ' + P.color;
-    d.innerHTML = P.emoji + ' <b>' + P.name + '</b> <span style="opacity:.75;">(' + G.names[pl] + ')</span><br><span class="fin">🏠 ' + fin + '/4 pulang</span>';
-    box.appendChild(d);
+    plate.innerHTML = P.emoji + ' ' + P.name + '<br>🏆 ' + fin + '/4';
+    cn.classList.toggle('turn', G.turn === pl && !G.over);
   });
-  const chip = $('turnChip');
-  if(G.over){ chip.textContent = '🏆 ' + PLAYERS[G.winner].name + ' MENANG!'; chip.style.background = PLAYERS[G.winner].color; }
-  else { const P = PLAYERS[G.turn]; chip.textContent = (G.phase === 'roll' ? '🎲 Giliran ' : '👆 Pilih pion ') + P.name + ' (' + G.names[G.turn] + ')'; chip.style.background = P.color; }
+  const plaque = $('plaque');
+  if(G.over) plaque.innerHTML = '🏆 ' + PLAYERS[G.winner].name + ' MENANG! 🏆';
+  else plaque.innerHTML = '👑 Mode: Classic 👑';
 }
 const DICE_PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
 function drawDice(v){
@@ -560,5 +562,38 @@ function startMusic(){
 const _initAudio2 = initAudio;
 initAudio = function(){ _initAudio2(); startMusic(); };
 </script>
+<style>
+  /* ===== V3: GAYA LUDO KING — kayu hangat, koin mahkota, sudut pemain ===== */
+  body { background:
+    radial-gradient(ellipse at 50% 26%, rgba(255,220,150,.22), transparent 55%),
+    repeating-linear-gradient(0deg, #a06a3c 0 54px, #96622f 54px 108px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 3px, transparent 3px 108px),
+    #96622f; }
+  #plaque { flex:1; text-align:center; font-weight:900; font-size:16.5px; color:#eaffea; letter-spacing:.5px;
+    background:linear-gradient(#3f9e74, #2b7a58); border:3px solid #d9b45b; border-radius:22px; padding:8px 10px;
+    box-shadow:0 5px 14px rgba(0,0,0,.45), inset 0 2px 4px rgba(255,255,255,.35); text-shadow:0 2px 3px rgba(0,0,0,.4); }
+  .iconBtn { background:linear-gradient(#8a5a2b, #6e451d); border-color:#d9b45b; }
+  #board { border:6px solid #7a4d20; box-shadow:0 0 0 3px #d9b45b, 0 30px 44px rgba(0,0,0,.55), inset 0 0 18px rgba(0,0,0,.15); }
+  .cell.track { background:#f8ecd2; }
+  .corner { position:absolute; z-index:12; display:flex; align-items:center; gap:5px; }
+  .corner .avatar { width:47px; height:47px; border-radius:50%; border:3.5px solid #d9b45b; overflow:hidden; flex:0 0 auto;
+    box-shadow:0 5px 11px rgba(0,0,0,.5); background:#fff; }
+  .corner .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+  .corner .plate { background:linear-gradient(#8a5a2b, #6e451d); border:2px solid #d9b45b; border-radius:9px; color:#ffe9a8;
+    padding:3px 9px; font-size:11px; font-weight:900; line-height:1.35; text-align:center; box-shadow:0 4px 9px rgba(0,0,0,.4); min-width:74px; }
+  .corner.turn .avatar { box-shadow:0 0 0 3px #ffd93b, 0 0 20px #ffd93b, 0 5px 11px rgba(0,0,0,.5); animation:bobA 0.8s ease-in-out infinite; }
+  .corner.turn .plate { background:linear-gradient(#b9832f, #8a5f14); color:#fff; }
+  @keyframes bobA { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-4px);} }
+  #diceTray { position:absolute; left:50%; bottom:-30px; transform:translateX(-50%); z-index:13; width:88px; height:88px; border-radius:50%;
+    background:radial-gradient(circle at 50% 36%, #b9834a, #7a4d20 72%, #5d3a16); border:3.5px solid #d9b45b;
+    box-shadow:0 12px 22px rgba(0,0,0,.55), inset 0 5px 9px rgba(255,255,255,.3), inset 0 -10px 14px rgba(0,0,0,.45);
+    display:flex; align-items:center; justify-content:center; }
+  #diceTray #dice { width:56px; height:56px; }
+  #diceLbl { margin-top:52px; width:min(96vw, 470px); text-align:center; font-weight:900; font-size:14.5px; color:#fff3d6;
+    text-shadow:0 2px 4px rgba(0,0,0,.6); line-height:1.45; }
+  .pawn { border:3px solid rgba(110,66,0,.6); box-shadow:inset 0 0 0 3px rgba(255,215,64,.7), inset 0 -5px 8px rgba(0,0,0,.35), inset 0 5px 7px rgba(255,255,255,.6), 0 6px 10px rgba(0,0,0,.5); text-shadow:0 1px 2px rgba(0,0,0,.35); }
+  #sparks { z-index:0; }
+  #menu .sub { color:#fff3d6; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+</style>
 </body>
 </html>
