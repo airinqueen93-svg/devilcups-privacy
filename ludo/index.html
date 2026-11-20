@@ -487,6 +487,42 @@ $('callBtn').addEventListener('click', () => {
   }
 });
 
+/* ================= PODIUM DARI LINK TEMAN ================= */
+function showSharedPodium(r){
+  const byName = n => PLAYERS.find(p => p.name === n) || PLAYERS[0];
+  const row = $('podiumRow'); row.innerHTML = '';
+  const heights = [118, 82, 58], medals = ['#ffd94d', '#e8edf2', '#eda75f'], nums = ['1', '2', '3'];
+  const visual = r.length >= 3 ? [r[1], r[0], r[2]] : r.slice();
+  visual.forEach(item => {
+    const place = r.indexOf(item);
+    const P = byName(item.name);
+    const d = document.createElement('div'); d.className = 'pod';
+    d.innerHTML = (place === 0 ? '<div class="pCrown">👑</div>' : '<div style="height:30px;"></div>')
+      + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + window.LUDO_FACE + '"></div>'
+      + '<div class="pName">' + P.emoji + ' ' + item.name + '</div>'
+      + '<div class="pFin">🏠 ' + item.fin + '/4 pulang</div>'
+      + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medals[place] + ', ' + medals[place] + 'cc);">' + nums[place] + '</div>';
+    row.appendChild(d);
+  });
+  const rest = $('podiumRest');
+  rest.innerHTML = r.length > 3 ? ('4️⃣ ' + byName(r[3].name).emoji + ' ' + r[3].name + ' — 🏠 ' + r[3].fin + '/4 pulang') : '';
+  document.querySelector('#podiumScr h1').innerHTML = '🏆 ' + r[0].name + ' <b>JUARA!</b>';
+  $('menu').style.display = 'none'; $('gameScr').style.display = 'none';
+  $('podiumScr').style.display = 'flex';
+  const ba = $('btnAgain'), nb = ba.cloneNode(true);
+  nb.textContent = '🎮 MAIN JUGA';
+  ba.replaceWith(nb);
+  nb.addEventListener('click', () => { location.href = location.pathname; });
+  $('btnPodWA').style.display = 'none';
+  toast('🏆 Ini podium yang dibagikan temanmu! Berani lawan? Tap MAIN JUGA!', 3200);
+}
+(function(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has('podium')) return;
+  const r = (q.get('r') || '').split(',').map(s => { const kv = s.split(':'); return { name: kv[0], fin: parseInt(kv[1] || '0', 10) || 0 }; }).filter(x => x.name);
+  if(r.length) window.addEventListener('load', () => setTimeout(() => showSharedPodium(r), 80));
+})();
+
 /* ================= AUTO TEST: 4 bot main sendiri sampai ada pemenang ================= */
 if(new URLSearchParams(location.search).has('auto')){
   window.addEventListener('load', () => setTimeout(() => {
@@ -703,6 +739,7 @@ function showPodium(){
     const sb = G.pawns.filter(p => p.pl === b).reduce((s, p) => s + Math.max(p.pos, 0), 0);
     return sb - sa;
   });
+  window._podiumShare = ranked.map(pl => PLAYERS[pl].name + ':' + G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length).join(',');
   const row = $('podiumRow'); row.innerHTML = '';
   const heights = [118, 82, 58], medals = ['#ffd94d', '#e8edf2', '#eda75f'], nums = ['1', '2', '3'];
   const visual = ranked.length >= 3 ? [ranked[1], ranked[0], ranked[2]] : ranked.slice();
@@ -730,7 +767,8 @@ $('btnAgain').addEventListener('click', () => { $('podiumScr').style.display = '
 $('btnPodHome').addEventListener('click', () => { $('podiumScr').style.display = 'none'; $('gameScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; });
 $('btnPodWA').addEventListener('click', () => {
   const w = PLAYERS[G.winner];
-  const txt = encodeURIComponent('🏆 Aku baru main LUDO DEVILCUPS dan ' + w.name + ' yang menang! Berani lawan aku? Main di sini: ' + GAME_URL);
+  const link = GAME_URL + '?podium=1&r=' + encodeURIComponent(window._podiumShare || (w.name + ':4'));
+  const txt = encodeURIComponent('🏆 Aku JUARA di LUDO DEVILCUPS! Lihat podiumku di sini: ' + link + ' — berani lawan aku? 🎲');
   window.open('https://wa.me/?text=' + txt, '_blank');
 });
 </script>
