@@ -223,9 +223,10 @@ function renderPlayers(){
   else plaque.innerHTML = '👑 Mode: Classic 👑';
 }
 const DICE_PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
+const CUBE_R = { 1:'rotateX(0deg) rotateY(0deg)', 2:'rotateX(-90deg)', 3:'rotateZ(90deg)', 4:'rotateZ(-90deg)', 5:'rotateX(90deg)', 6:'rotateX(180deg)' };
 function drawDice(v){
-  const d = $('dice'); d.innerHTML = '';
-  for(let i = 0; i < 9; i++){ const s = document.createElement('div'); s.className = 'pip'; if(DICE_PIPS[v].includes(i)) s.innerHTML = '<i></i>'; d.appendChild(s); }
+  const c = $('cube'); if(!c) return;
+  c.style.transform = 'rotateX(-24deg) rotateY(32deg) ' + CUBE_R[v];
 }
 
 /* ================= SUARA ================= */
@@ -595,5 +596,46 @@ initAudio = function(){ _initAudio2(); startMusic(); };
   #sparks { z-index:0; }
   #menu .sub { color:#fff3d6; text-shadow:0 1px 3px rgba(0,0,0,.5); }
 </style>
+<style>
+  /* ===== V4: DADU KUBUS 3D ===== */
+  #dice { background:none !important; box-shadow:none !important; padding:0; display:flex; align-items:center; justify-content:center; perspective:340px; transform:none; }
+  #dice:active { transform:none; }
+  #cube { width:54px; height:54px; position:relative; transform-style:preserve-3d; transition:transform .16s ease; }
+  #cube .face { position:absolute; inset:0; border-radius:9px; box-sizing:border-box; padding:7px;
+    background:linear-gradient(145deg, #ffffff, #d9dfe8 75%); border:2px solid #aeb7c4;
+    box-shadow:inset 0 0 9px rgba(0,0,0,.14); display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(3, 1fr); backface-visibility:hidden; }
+  #cube .pip { display:flex; align-items:center; justify-content:center; }
+  #cube .pip i { width:8.5px; height:8.5px; border-radius:50%; background:#26324a; display:block; box-shadow:inset 0 -1px 2px rgba(0,0,0,.5); }
+  #dice.rolling #cube { animation:cubeShake .1s linear infinite; }
+  @keyframes cubeShake { 0%{ margin-top:0; } 50%{ margin-top:-4px; } 100%{ margin-top:0; } }
+</style>
+<script>
+'use strict';
+/* bangun kubus dadu 3D: atas=1 depan=2 kanan=3 kiri=4 belakang=5 bawah=6 */
+(function(){
+  const dice = document.getElementById('dice');
+  dice.innerHTML = '';
+  const cube = document.createElement('div'); cube.id = 'cube';
+  const faces = [
+    { v:1, t:'rotateX(90deg) translateZ(27px)' },
+    { v:6, t:'rotateX(-90deg) translateZ(27px)' },
+    { v:2, t:'rotateY(0deg) translateZ(27px)' },
+    { v:5, t:'rotateY(180deg) translateZ(27px)' },
+    { v:3, t:'rotateY(90deg) translateZ(27px)' },
+    { v:4, t:'rotateY(-90deg) translateZ(27px)' },
+  ];
+  for(const f of faces){
+    const d = document.createElement('div'); d.className = 'face'; d.style.transform = f.t;
+    for(let i = 0; i < 9; i++){
+      const s = document.createElement('div'); s.className = 'pip';
+      if(DICE_PIPS[f.v].includes(i)) s.innerHTML = '<i></i>';
+      d.appendChild(s);
+    }
+    cube.appendChild(d);
+  }
+  dice.appendChild(cube);
+  drawDice(6);
+})();
+</script>
 </body>
 </html>
