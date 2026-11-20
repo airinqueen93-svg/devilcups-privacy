@@ -58,8 +58,21 @@
   #mirror { position:absolute; top:50%; left:50%; transform:translate(-50%,-54%); width:min(92vw,400px); aspect-ratio:1;
     border-radius:50%; background:radial-gradient(circle at 50% 38%, #fffafd 0%, #ffe9f4 55%, #ffd3e8 100%);
     border:7px solid #ffb3d1; box-shadow:0 0 0 5px #fff, 0 0 34px rgba(255,95,162,.5), inset 0 0 44px rgba(255,143,199,.35); }
-  #faceWrap { height:100%; max-height:520px; aspect-ratio:300/380; position:relative; z-index:1; animation:bob 3.2s ease-in-out infinite; }
+  #faceWrap { height:100%; max-height:520px; aspect-ratio:300/380; position:relative; z-index:1; animation:sway 4.6s ease-in-out infinite; transform-origin:50% 88%; }
   @keyframes bob { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-5px);} }
+  @keyframes sway { 0%,100%{ transform:translateY(0) rotate(-1.3deg);} 50%{ transform:translateY(-5px) rotate(1.3deg);} }
+  #eyesG { transform-box:fill-box; transform-origin:center; transition:transform .07s ease; }
+  #faceSvg.blink #eyesG { transform:scaleY(.08); }
+  #faceSvg.talking #lips { transform-box:fill-box; transform-origin:center; animation:talk .16s ease-in-out infinite alternate; }
+  @keyframes talk { from{ transform:scaleY(.72);} to{ transform:scaleY(1.15);} }
+  #bubble { position:absolute; top:4px; left:50%; transform:translateX(-50%); z-index:5; max-width:88%;
+    background:#fff; border:2.5px solid #ff8fc7; border-radius:16px; padding:8px 13px; font-size:13.5px;
+    font-weight:700; color:#862e5c; box-shadow:0 6px 16px rgba(214,51,132,.25); text-align:center; line-height:1.35; }
+  #bubble:after { content:''; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
+    border:9px solid transparent; border-top-color:#ff8fc7; border-bottom:0; }
+  .heartFly { position:absolute; z-index:6; pointer-events:none; font-size:20px; }
+  #btnVoice { cursor:pointer; }
+  #photoPanel .row { flex-wrap:wrap; }
   #faceWrap svg { width:100%; height:100%; display:block; filter:drop-shadow(0 10px 14px rgba(164,19,60,.25)); }
   .sparkle { position:absolute; font-size:18px; pointer-events:none; animation:spark 1.6s ease-in-out infinite; opacity:0; }
   @keyframes spark { 0%,100%{opacity:0; transform:scale(.4) rotate(0deg);} 50%{opacity:1; transform:scale(1.15) rotate(25deg);} }
@@ -121,6 +134,7 @@
     <div class="logo">👑 QUEEN RIMBO 30<small>GLAM DOLL SALON</small></div>
     <div class="pill" id="coinPill">🪙 0</div>
     <div class="pill" id="lvlPill">⭐ Lv 1</div>
+    <div class="pill" id="btnVoice">🔊</div>
   </header>
 
   <div id="custCard">
@@ -145,6 +159,7 @@
 
   <div id="stage">
     <div id="mirror"></div>
+    <div id="bubble" class="hidden"><span id="bubbleText"></span></div>
     <div id="faceWrap">
       <img id="photoFace" alt="Foto kamu">
       <svg id="faceSvg" viewBox="0 0 300 380" aria-label="Wajah pelanggan">
@@ -239,7 +254,7 @@
       <h1>👑 QUEEN RIMBO 30<span class="sub">GLAM DOLL SALON • DEVILCUPS</span></h1>
       <p>Selamat datang di salon paling pink sejagat! 🎀<br>
       Dandani <b>Amelia98</b> sesuai <b>permintaan</b> di kartunya — pilih lipstik, eyeshadow, rambut & aksesori yang pas biar dapat <b>3 bintang</b> dan koin banyak!</p>
-      <p style="font-size:12px">Level naik = warna & item baru kebuka! 🔓<br>📷 Amelia98 juga bisa diganti <b>foto kamu sendiri</b> — tap tombol "Foto Kamu"!</p>
+      <p style="font-size:12px">Level naik = warna & item baru kebuka! 🔓<br>📷 Amelia98 juga bisa diganti <b>foto kamu sendiri</b> — tap tombol "Foto Kamu"!<br>💬 Dia juga bisa <b>ngomong & gerak</b> lho!</p>
       <button class="bigbtn" id="btnStart">Mulai Main ▶</button>
     </div>
   </div>
@@ -500,6 +515,8 @@ function newCustomer(){
   baseLook.dressFam = {'#ff5fa2':'pink','#9775fa':'purple','#74c0fc':'blue','#e03131':'red'}[baseLook.dress];
   look = JSON.parse(JSON.stringify(baseLook));
   renderCustomer(); renderLook(); renderOpts(); updateHUD();
+  window._doneReqs = new Set(cust.reqs.filter(r=>r.test(look)).map(r=>r.id));
+  say(GREET[cust.theme.id] || 'Hai! Aku Amelia98, dandani aku ya!', true);
 }
 function renderCustomer(){
   $('#custAva').textContent = cust.ava;
@@ -512,7 +529,12 @@ function refreshChips(){
   if(!cust) return;
   cust.reqs.forEach(r=>{
     const el = document.querySelector(`[data-req="${r.id}"]`);
-    if(el) el.classList.toggle('done', !!r.test(look));
+    const done = !!r.test(look);
+    if(el) el.classList.toggle('done', done);
+    if(window._doneReqs){
+      if(done && !window._doneReqs.has(r.id)){ window._doneReqs.add(r.id); say('Yeay! Itu yang kumau! 💖', true); burstHearts(3); }
+      if(!done) window._doneReqs.delete(r.id);
+    }
   });
 }
 function renderLook(){
@@ -606,6 +628,8 @@ function applyOpt(o){
   blip(660 + Math.random()*220);
   renderLook(); renderOpts(); refreshChips();
   if(photoMode) applyPhotoTF();
+  burstHearts(1); happyBounce();
+  if(Math.random() < .4) say(REACT_SLOT[o.slot] || REACT[Math.floor(Math.random()*REACT.length)]);
 }
 
 /* ================= SCORING ================= */
@@ -624,6 +648,10 @@ function scoreLook(){
 }
 function finish(){
   const r = scoreLook();
+  say(r.stars===3 ? 'WOW! Aku cantik banget! Makasih banyak yaa! 😍'
+    : r.stars===2 ? 'Makasih! Aku lumayan cantik nih! 😊'
+    : 'Hmm... makasih ya sudah berusaha! 🙂', true);
+  burstHearts(r.stars);
   save.coins += r.coins; save.stars += r.stars; save.served += 1;
   const oldLevel = level;
   level = Math.min(5, 1 + Math.floor(save.stars/6));
@@ -744,6 +772,75 @@ try{
   }
 }catch(e){}
 
+/* ================= TALK & LIFE ================= */
+let voiceOn = true; try{ voiceOn = localStorage.getItem('qrimbo30_voice') !== '0'; }catch(e){}
+let sayTimer = null, typeTimer = null, lastSayAt = 0;
+const GREET = {
+  pesta:'Hari ini aku ulang tahun! 🎂 Bikin aku paling cetar ya!',
+  kencan:'Aku mau kencan nih... bikin aku cantik ya, biar dia terpesona! 💌',
+  nikah:'Aku mau ke acara pernikahan, harus anggun dan mewah! 💍',
+  santai:'Mau jalan-jalan santai aja, makeup-nya yang natural ya! 🌸',
+  pantai:'Pesta pantai! Makeup yang fresh dan cerah ya! 🏖️',
+  glamor:'Malam ini aku harus GLAMOR total! Berani tampil beda! 🌟',
+  kantor:'Ada acara kantor nih, bikin aku kelihatan rapi dan profesional ya! 💼' };
+const REACT = ['Ih, lucu! 😍','Wah, cantik!','Aku suka banget! 💖','Makin pede nih aku!','Cakep banget!','Terus, terus!'];
+const REACT_SLOT = { lip:'Bibirku makin cantik! 💄', hairColor:'Warna rambutku! Suka banget! 💇‍♀️',
+  hairStyle:'Gaya rambut baru! Kece! ✨', dress:'Gaunnya bagus banget! 👗', shadow:'Mataku makin hidup! 👁️', blush:'Pipiku merona! 🌸' };
+function setTalking(on){ if(!photoMode) $('#faceSvg').classList.toggle('talking', on); }
+function say(text, force){
+  const now = Date.now();
+  if(!force && now - lastSayAt < 1400) return;
+  lastSayAt = now;
+  const b = $('#bubble'), bt = $('#bubbleText');
+  b.classList.remove('hidden');
+  clearInterval(typeTimer);
+  let i = 0; bt.textContent = '';
+  typeTimer = setInterval(()=>{ bt.textContent = text.slice(0, ++i); if(i >= text.length) clearInterval(typeTimer); }, 16);
+  setTalking(true);
+  clearTimeout(sayTimer);
+  sayTimer = setTimeout(()=> setTalking(false), Math.min(4200, 500 + text.length * 85));
+  if(voiceOn && 'speechSynthesis' in window){
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ''));
+      u.lang = 'id-ID'; u.pitch = 1.35; u.rate = 1.03;
+      const v = speechSynthesis.getVoices().find(v => (v.lang || '').toLowerCase().startsWith('id'));
+      if(v) u.voice = v;
+      u.onend = u.onerror = ()=> setTalking(false);
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+}
+function burstHearts(n){
+  const stage = $('#stage'); if(!stage) return;
+  for(let i = 0; i < n; i++){
+    const s = document.createElement('span');
+    s.className = 'heartFly'; s.textContent = ['💖','💕','✨'][i % 3];
+    s.style.left = (38 + Math.random() * 24) + '%'; s.style.top = '46%';
+    stage.appendChild(s);
+    const anim = s.animate([{ transform:'translateY(0) scale(.6)', opacity:1 },
+      { transform:`translateY(${-70 - Math.random() * 50}px) scale(1.15)`, opacity:0 }],
+      { duration: 900 + Math.random() * 400, easing:'ease-out' });
+    if(anim) anim.onfinish = ()=> s.remove(); else setTimeout(()=> s.remove(), 1000);
+  }
+}
+function happyBounce(){
+  const w = $('#faceWrap');
+  if(w && w.animate) w.animate([{ transform:'scale(1)' }, { transform:'scale(1.045)' }, { transform:'scale(1)' }], { duration: 360, easing:'ease-out' });
+}
+(function blinkLoop(){
+  setTimeout(()=>{
+    if(!photoMode && !document.hidden){ const f = $('#faceSvg'); f.classList.add('blink'); setTimeout(()=> f.classList.remove('blink'), 130); }
+    blinkLoop();
+  }, 2300 + Math.random() * 2200);
+})();
+function paintVoice(){ $('#btnVoice').textContent = voiceOn ? '🔊' : '🔇'; }
+$('#btnVoice').onclick = ()=>{ voiceOn = !voiceOn;
+  try{ localStorage.setItem('qrimbo30_voice', voiceOn ? '1' : '0'); }catch(e){}
+  if(!voiceOn && 'speechSynthesis' in window) try{ speechSynthesis.cancel(); }catch(e){}
+  setTalking(false); paintVoice(); toast(voiceOn ? '🔊 Suara Amelia98 nyala' : '🔇 Suara dimatikan'); };
+paintVoice();
+
 /* test hooks */
 window.__QR = { get state(){ return {save, level, cust, look}; }, scoreLook, newCustomer, applyOpt, setPhoto, removePhoto,
   applyById(cat,id){ curCat=cat; const o=OPTS[cat].find(x=>x.id===id); if(o) applyOpt(o); } };
@@ -757,6 +854,13 @@ if(new URLSearchParams(location.search).has('demo')){
   __QR.applyById('aksesori','hd_jepit'); __QR.applyById('aksesori','er_mutiara'); __QR.applyById('aksesori','nk_hati');
   curCat='bibir'; renderTabs(); renderOpts();
   document.title = 'DEMOREADY';
+}
+if(new URLSearchParams(location.search).has('talk')){
+  $('#startOverlay').classList.add('hidden');
+  newCustomer();
+  __QR.applyById('bibir','lp_merah');
+  __QR.applyById('pipi','bl_pink');
+  document.title = 'TALKOK';
 }
 if(new URLSearchParams(location.search).has('facet')){
   $('#startOverlay').classList.add('hidden');
