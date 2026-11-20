@@ -112,7 +112,7 @@
   </div>
   <button class="bigBtn" id="btnStart">🏁 GAS BALAPAN!</button>
   <button class="ghostBtn" id="btnGarage">🔧 GARASI — motor & warna (🪙 <span id="garageCoins">0</span>)</button>
-  <div class="foot">Karier: menang balapan → kumpulin 🪙 → beli motor lebih kencang di Garasi • DEVILCUPS • v5</div>
+  <div class="foot">Karier: menang balapan → kumpulin 🪙 → beli motor lebih kencang di Garasi • DEVILCUPS • v6</div>
 </div>
 
 <div class="screen" id="garageScreen">
@@ -960,30 +960,67 @@ function updAudio(){
 }
 function engStop(){ if(engGain && AC) engGain.gain.setTargetAtTime(0, AC.currentTime, .1); if(sirenGain && AC) sirenGain.gain.setTargetAtTime(0, AC.currentTime, .1); }
 function sirenOn(){}
-/* beat koplo (kota) / kendang santai (alam) */
+/* ===== SOUND SURVIVOR: drone tegang + pad minor + detak jantung + stinger jauh ===== */
 function startBeat(){
-  let step = 0, nextT = AC.currentTime + .1;
-  const spb = () => (G.mode === 'nature' || G.mode === 'stunt') ? (60 / 96) / 2 : (60 / 132) / 2;
   function thump(t, f, v, dur){
     const o = AC.createOscillator(), g = AC.createGain();
     o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .5, t + dur);
     g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
     o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + dur + .02);
   }
-  function tak(t, v){
-    const s = AC.createBufferSource(); s.buffer = window._noiseBuf;
-    const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2100; f.Q.value = 1.4;
-    const g = AC.createGain(); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + .07);
-    s.connect(f); f.connect(g); g.connect(musicGain); s.start(t); s.stop(t + .08);
+  /* drone gelap dua lapis + napas LFO */
+  const droneGain = AC.createGain(); droneGain.gain.value = .042;
+  const droneFil = AC.createBiquadFilter(); droneFil.type = 'lowpass'; droneFil.frequency.value = 210;
+  droneFil.connect(droneGain); droneGain.connect(musicGain);
+  const d1 = AC.createOscillator(); d1.type = 'sine'; d1.frequency.value = 55;
+  const d2 = AC.createOscillator(); d2.type = 'triangle'; d2.frequency.value = 82.7;
+  const d2g = AC.createGain(); d2g.gain.value = .5;
+  d1.connect(droneFil); d2.connect(d2g); d2g.connect(droneFil); d1.start(); d2.start();
+  const lfo = AC.createOscillator(); lfo.frequency.value = .07;
+  const lfoG = AC.createGain(); lfoG.gain.value = .014;
+  lfo.connect(lfoG); lfoG.connect(droneGain.gain); lfo.start();
+  /* akor pad minor pelan berganti-ganti */
+  const CHORDS = [[110, 130.81, 164.81], [87.31, 110, 130.81], [130.81, 164.81, 196], [82.41, 103.83, 123.47]];
+  let ci = 0;
+  function pad(){
+    const t = AC.currentTime;
+    const fil = AC.createBiquadFilter(); fil.type = 'lowpass'; fil.frequency.value = 640; fil.connect(musicGain);
+    for(const fq of CHORDS[ci % CHORDS.length]){
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'triangle'; o.frequency.value = fq;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.026, t + 2.4); g.gain.linearRampToValueAtTime(0, t + 7.5);
+      o.connect(g); g.connect(fil); o.start(t); o.stop(t + 7.6);
+    }
+    ci++;
   }
-  function bass(t, f0){
-    const o = AC.createOscillator(), g = AC.createGain();
-    o.type = 'triangle'; o.frequency.value = f0;
-    g.gain.setValueAtTime(.07, t); g.gain.exponentialRampToValueAtTime(.001, t + .22);
-    o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + .24);
+  function stinger(){
+    const t = AC.currentTime;
+    if(Math.random() < .5){ /* klakson jauh */
+      for(const fq of [65.4, 98]){
+        const o = AC.createOscillator(), g = AC.createGain(), f = AC.createBiquadFilter();
+        o.type = 'sawtooth'; o.frequency.value = fq; f.type = 'lowpass'; f.frequency.value = 300;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .5); g.gain.linearRampToValueAtTime(0, t + 2.8);
+        o.connect(f); f.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 2.9);
+      }
+    } else { /* gesekan logam jauh */
+      const s = AC.createBufferSource(); s.buffer = window._noiseBuf;
+      const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 9;
+      f.frequency.setValueAtTime(2300, t); f.frequency.exponentialRampToValueAtTime(480, t + 1.3);
+      const g = AC.createGain(); g.gain.setValueAtTime(.045, t); g.gain.exponentialRampToValueAtTime(.001, t + 1.35);
+      s.connect(f); f.connect(g); g.connect(musicGain); s.start(t); s.stop(t + 1.4);
+    }
   }
-  const roots = [55, 55, 65.41, 49];
-  setInterval(() => { /* beat dimatikan atas permintaan Juragan (bunyi ketukan/gletek) */ }, 110);
+  let nextPad = 0, nextSting = 6, nextHb = 0;
+  setInterval(() => {
+    if(!AC || !G.started || G.over) return;
+    const now = AC.currentTime;
+    if(now >= nextPad){ pad(); nextPad = now + 8.5; }
+    if(now >= nextSting){ stinger(); nextSting = now + 15 + Math.random() * 13; }
+    if(G.busted > .03 && now >= nextHb){ /* detak jantung pas hampir ketangkep */
+      thump(now, 58, .5, .13); thump(now + .17, 52, .34, .11);
+      nextHb = now + (.95 - G.busted * .45);
+    }
+  }, 200);
 }
 function crashSfx(){
   if(!AC) return;
