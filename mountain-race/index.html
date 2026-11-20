@@ -80,6 +80,7 @@
   <button class="modeBtn" data-mode="fog" style="background:linear-gradient(#868e96,#495057);">🌫️ MODE KABUT<small>Jarak pandang 5 meter! Modal lampu + feeling. Paling horor!</small></button>
   <button class="modeBtn" data-mode="storm" style="background:linear-gradient(#5f27c9,#3b1470);">⛈️ MODE HUJAN BADAI<small>Petir + jalan lumpur licin. Motor gampang selip!</small></button>
   <button class="modeBtn" data-mode="survival" style="background:linear-gradient(#2f9e44,#1b5e20);">⛽ MODE SURVIVAL<small>Bensin terbatas! Mampir WARUNG buat isi bensin + servis.</small></button>
+  <button class="modeBtn" data-mode="highway" style="background:linear-gradient(#e8590c,#a61e4d);">🛣️ JALAN RAYA PEGUNUNGAN<small>Aspal mulus + pagar pembatas! Ngebut lebih kencang di pegunungan.</small></button>
   <div id="garage"><h3 id="garageH">🏍️ GARASI — pilih motor tempurmu</h3><div class="bikeRow" id="bikeRow"></div></div>
   <div id="volRow">🔊 <span id="volLbl">Suara:</span> <input type="range" id="volSlider" min="0" max="100" value="70"> <span id="volVal">70%</span></div>
   <p class="tag" id="hintTag" style="font-size:11.5px; opacity:.85;">Kontrol: ◀ ▶ belok • GAS tahan buat ngegas • NITRO buat wheelie boost 🔥<br>Ngebut di pinggir jurang = bar NYALI naik = poin & kecepatan bonus!</p>
@@ -136,7 +137,7 @@ let LANG = 'id';
 try { LANG = localStorage.getItem('mr_lang') || 'id'; } catch(e) {}
 const STR = {
   id: { tag:'🌄 REAL WORLD — Balap trail di gunung beneran:<br>Bromo • Merapi • Dieng • Rinjani. Kiri jurang, kanan tebing!',
-    modes:{ up:['⛰️ MODE NAIK GUNUNG','Start dari desa, finish di PUNCAK. 8 pembalap, jalan sempit!'], down:['🏍️ MODE TURUN GUNUNG','Turunan curam, tikungan 180°, rem jangan blong!'], fog:['🌫️ MODE KABUT','Jarak pandang 5 meter! Modal lampu + feeling. Paling horor!'], storm:['⛈️ MODE HUJAN BADAI','Petir + jalan lumpur licin. Motor gampang selip!'], survival:['⛽ MODE SURVIVAL','Bensin terbatas! Mampir WARUNG buat isi bensin + servis.'] },
+    modes:{ up:['⛰️ MODE NAIK GUNUNG','Start dari desa, finish di PUNCAK. 8 pembalap, jalan sempit!'], down:['🏍️ MODE TURUN GUNUNG','Turunan curam, tikungan 180°, rem jangan blong!'], fog:['🌫️ MODE KABUT','Jarak pandang 5 meter! Modal lampu + feeling. Paling horor!'], storm:['⛈️ MODE HUJAN BADAI','Petir + jalan lumpur licin. Motor gampang selip!'], survival:['⛽ MODE SURVIVAL','Bensin terbatas! Mampir WARUNG buat isi bensin + servis.'], highway:['🛣️ JALAN RAYA PEGUNUNGAN','Aspal mulus + pagar pembatas! Ngebut lebih kencang di pegunungan.'] },
     garageH:'🏍️ GARASI — pilih motor tempurmu', vol:'Suara:', hint:'Kontrol: ◀ ▶ belok • GAS tahan buat ngegas • NITRO buat wheelie boost 🔥<br>Ngebut di pinggir jurang = bar NYALI naik = poin & kecepatan bonus!',
     coins:'koin', equipped:'DIPAKAI ✅', select:'PILIH', top:'Top', coins_low:'🪙 Koin kurang! Menang balapan dulu',
     fall:'😱 JATUH KE JURANG!', crash:'💥 NABRAK!', bumped:' NYENGGOL KAMU!', boost:'🔥 NYALI PENUH! BOOST! 🔥',
@@ -145,7 +146,7 @@ const STR = {
     champ:'🏆 JUARA GUNUNG!', podium:'🎉 PODIUM!', finish_pos:'🏁 FINISH POSISI ', nyali_pts:'🔥 Poin NYALI', coins_got:'🪙 Koin didapat', your_time:'⏱️ Waktumu', you:' (KAMU)', sec:' dtk',
     again:'🔁 BALAP LAGI', menubtn:'🏠 MENU UTAMA' },
   en: { tag:'🌄 REAL WORLD — Real mountain trail racing:<br>Bromo • Merapi • Dieng • Rinjani. Cliff on the left, rock wall on the right!',
-    modes:{ up:['⛰️ UPHILL MODE','Start at the village, finish at the SUMMIT. 8 riders, narrow road!'], down:['🏍️ DOWNHILL MODE','Steep descent, 180° hairpins — watch your brakes!'], fog:['🌫️ FOG MODE','Visibility: 5 meters! Headlight + instinct only. Pure horror!'], storm:['⛈️ STORM MODE','Lightning + slippery mud. Bikes slide everywhere!'], survival:['⛽ SURVIVAL MODE','Limited fuel! Stop at a WARUNG roadside stall to refuel + repair.'] },
+    modes:{ up:['⛰️ UPHILL MODE','Start at the village, finish at the SUMMIT. 8 riders, narrow road!'], down:['🏍️ DOWNHILL MODE','Steep descent, 180° hairpins — watch your brakes!'], fog:['🌫️ FOG MODE','Visibility: 5 meters! Headlight + instinct only. Pure horror!'], storm:['⛈️ STORM MODE','Lightning + slippery mud. Bikes slide everywhere!'], survival:['⛽ SURVIVAL MODE','Limited fuel! Stop at a WARUNG roadside stall to refuel + repair.'], highway:['🛣️ MOUNTAIN HIGHWAY','Smooth asphalt + guardrails! Faster racing in the mountains.'] },
     garageH:'🏍️ GARAGE — pick your battle bike', vol:'Sound:', hint:'Controls: ◀ ▶ steer • hold GAS to ride • NITRO for a wheelie boost 🔥<br>Speeding along the cliff edge fills the GUTS meter = bonus points & speed!',
     coins:'coins', equipped:'EQUIPPED ✅', select:'SELECT', top:'Top', coins_low:'🪙 Not enough coins! Win races first',
     fall:'😱 YOU FELL OFF THE CLIFF!', crash:'💥 CRASH!', bumped:' BUMPED YOU!', boost:'🔥 GUTS FULL! BOOST! 🔥',
@@ -259,12 +260,15 @@ const ROAD_W = 10;
 /* ================= THREE SETUP ================= */
 const renderer = new THREE.WebGLRenderer({ canvas: $('cv'), antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
 renderer.setSize(innerWidth, innerHeight);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf7a54a);
-scene.fog = new THREE.FogExp2(0xe8a266, .0038);
+scene.fog = new THREE.FogExp2(0xdfa06b, .0027);
 const camera = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, .1, 2600);
-const hemi = new THREE.HemisphereLight(0xffe0b3, 0x4a3421, .95); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0xffe7c4, 0x54402a, .9); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffb35c, 1.6); sun.position.set(-160, 120, -220); scene.add(sun);
 const amb = new THREE.AmbientLight(0xffd9a0, .25); scene.add(amb);
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
@@ -277,21 +281,73 @@ function canvasTex(draw, w, h, rx, ry){
   return t;
 }
 const dirtTex = canvasTex((x, w, h) => {
-  x.fillStyle = '#7d5a36'; x.fillRect(0, 0, w, h);
-  for(let i = 0; i < 2600; i++){ x.fillStyle = ['#6d4c2a', '#8f6a3e', '#5d3f22', '#99744a'][i % 4]; x.fillRect(Math.random() * w, Math.random() * h, 3 + Math.random() * 7, 2 + Math.random() * 5); }
-  x.fillStyle = 'rgba(52,36,18,.55)';
+  x.fillStyle = '#8a653c'; x.fillRect(0, 0, w, h);
+  for(let i = 0; i < 3000; i++){ x.fillStyle = ['#77572f', '#9c7444', '#664628', '#a87f4e', '#b08a55'][i % 5]; x.fillRect(Math.random() * w, Math.random() * h, 3 + Math.random() * 7, 2 + Math.random() * 5); }
+  x.fillStyle = 'rgba(44,30,14,.62)';
   x.fillRect(w * .22, 0, w * .13, h); x.fillRect(w * .65, 0, w * .13, h);
-  x.fillStyle = 'rgba(255,240,200,.10)'; x.fillRect(w * .47, 0, w * .06, h);
+  x.fillStyle = 'rgba(255,242,205,.16)'; x.fillRect(w * .46, 0, w * .08, h);
+  for(let i = 0; i < 260; i++){ x.fillStyle = 'rgba(210,195,170,.5)'; x.fillRect(Math.random() * w, Math.random() * h, 2.4, 2.4); }
 }, 256, 256, 1, 60);
 const grassTex = canvasTex((x, w, h) => {
-  x.fillStyle = '#4d6b2f'; x.fillRect(0, 0, w, h);
-  for(let i = 0; i < 1600; i++){ x.fillStyle = ['#426026', '#5a7c38', '#38511f', '#688a44'][i % 4]; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 3 + Math.random() * 7); }
-}, 256, 256, 30, 30);
+  x.fillStyle = '#527a33'; x.fillRect(0, 0, w, h);
+  for(let i = 0; i < 2400; i++){ x.fillStyle = ['#47702c', '#5f8c3e', '#3c6124', '#6fa04a', '#86b45e'][i % 5]; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 5, 3 + Math.random() * 8); }
+  for(let i = 0; i < 130; i++){ x.fillStyle = 'rgba(112,84,50,.35)'; x.fillRect(Math.random() * w, Math.random() * h, 3 + Math.random() * 8, 2 + Math.random() * 5); }
+}, 256, 256, 85, 85);
 const mudSuitTex = canvasTex((x, w, h) => {
   x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h);
   for(let i = 0; i < 240; i++){ x.fillStyle = 'rgba(96,64,32,' + (Math.random() * .5) + ')'; const r = 1 + Math.random() * 5; x.beginPath(); x.arc(Math.random() * w, h * .45 + Math.random() * h * .55, r, 0, 7); x.fill(); }
 }, 128, 128, 1, 1);
 
+const asphaltTex = canvasTex((x, w, h) => {
+  x.fillStyle = '#33373c'; x.fillRect(0, 0, w, h);
+  for(let i = 0; i < 2200; i++){ x.fillStyle = ['#2c3034', '#3d4147', '#383c41', '#26292d'][i % 4]; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 2 + Math.random() * 3); }
+  x.fillStyle = '#e8e8e8'; x.fillRect(4, 0, 5, h); x.fillRect(w - 9, 0, 5, h);
+  x.fillStyle = '#f7c948'; x.fillRect(w / 2 - 3, 6, 6, h * .52);
+}, 256, 256, 1, 60);
+const tireTex = canvasTex((x, w, h) => {
+  x.fillStyle = '#17181c'; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#26282e';
+  for(let i = 0; i < 8; i++){ x.fillRect((i % 2) * 10, i * 16, w - 20, 8); x.fillRect(((i + 1) % 2) * 10 + 6, i * 16 + 8, w - 26, 8); }
+}, 64, 128, 2, 3);
+function faceTexture(def){
+  return canvasTex((x, w, h) => {
+    const skin = '#' + def.skin.toString(16).padStart(6, '0');
+    x.fillStyle = skin; x.fillRect(0, 0, w, h);
+    const grd = x.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, 'rgba(255,255,255,.14)'); grd.addColorStop(1, 'rgba(90,50,20,.18)');
+    x.fillStyle = grd; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(120,70,40,.35)';
+    x.beginPath(); x.arc(30, 96, 9, 0, 7); x.fill(); x.beginPath(); x.arc(98, 96, 9, 0, 7); x.fill();
+    const eye = (cx) => {
+      x.fillStyle = '#ffffff'; x.beginPath(); x.ellipse(cx, 56, 10, 6, 0, 0, 7); x.fill();
+      x.fillStyle = '#3a2413'; x.beginPath(); x.arc(cx, 56, 3.6, 0, 7); x.fill();
+      x.fillStyle = '#14100c'; x.beginPath(); x.arc(cx, 56, 1.9, 0, 7); x.fill();
+      x.strokeStyle = 'rgba(60,35,18,.85)'; x.lineWidth = 3.4; x.beginPath(); x.moveTo(cx - 10, 45); x.lineTo(cx + 10, 44); x.stroke();
+      if(def.face === 'female'){ x.strokeStyle = '#1c1410'; x.lineWidth = 2; x.beginPath(); x.moveTo(cx - 10, 52); x.lineTo(cx - 13, 48); x.moveTo(cx + 10, 52); x.lineTo(cx + 13, 48); x.stroke(); }
+    };
+    eye(42); eye(86);
+    x.strokeStyle = 'rgba(140,90,55,.7)'; x.lineWidth = 2.4; x.beginPath(); x.moveTo(64, 62); x.lineTo(61, 78); x.lineTo(67, 79); x.stroke();
+    x.strokeStyle = def.face === 'female' ? '#c2496b' : 'rgba(120,60,45,.9)'; x.lineWidth = 3.4;
+    x.beginPath(); x.moveTo(50, 97); x.quadraticCurveTo(64, def.face === 'female' ? 103 : 100, 78, 97); x.stroke();
+    if(def.face === 'beard'){ x.fillStyle = 'rgba(38,28,20,.92)'; x.fillRect(38, 92, 52, 30); x.fillStyle = skin; x.fillRect(52, 96, 24, 7); }
+    if(def.face === 'mustache'){ x.fillStyle = 'rgba(45,35,26,.95)'; x.fillRect(48, 88, 32, 6); }
+    if(def.face === 'female'){ x.fillStyle = 'rgba(233,120,150,.28)'; x.beginPath(); x.arc(28, 78, 8, 0, 7); x.fill(); x.beginPath(); x.arc(100, 78, 8, 0, 7); x.fill(); }
+    for(let i = 0; i < 26; i++){ x.fillStyle = 'rgba(96,64,32,' + (Math.random() * .4) + ')'; x.fillRect(14 + Math.random() * 100, 92 + Math.random() * 32, 2.4, 2.4); }
+  }, 128, 128, 1, 1);
+}
+const jacketTexCache = {};
+function jacketTexture(def){
+  const key = def.jacket;
+  if(jacketTexCache[key]) return jacketTexCache[key];
+  const t = canvasTex((x, w, h) => {
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(0,0,0,.22)'; x.fillRect(w / 2 - 2, 6, 4, h - 12);
+    x.fillStyle = 'rgba(255,255,255,.35)'; for(let i = 0; i < 7; i++) x.fillRect(w / 2 - 1, 10 + i * 16, 2, 6);
+    x.fillStyle = 'rgba(0,0,0,.28)'; x.fillRect(10, 66, 26, 20); x.fillRect(w - 36, 66, 26, 20);
+    x.fillStyle = 'rgba(255,255,255,.5)'; x.fillRect(8, 26, w - 16, 5);
+    for(let i = 0; i < 200; i++){ x.fillStyle = 'rgba(96,64,32,' + (Math.random() * .45) + ')'; const r = 1 + Math.random() * 4; x.beginPath(); x.arc(Math.random() * w, h * .5 + Math.random() * h * .5, r, 0, 7); x.fill(); }
+  }, 128, 128, 1, 1);
+  jacketTexCache[key] = t; return t;
+}
 /* ---- Tanah dasar raksasa mengikuti tanjakan ---- */
 {
   const g = new THREE.PlaneGeometry(2400, TRACK_LEN + 1600, 1, 1);
@@ -304,6 +360,7 @@ const mudSuitTex = canvasTex((x, w, h) => {
   cliff.position.set(-60, -380, TRACK_LEN / 2); scene.add(cliff);
 }
 /* ---- Jalan tanah ribbon ---- */
+let roadMat;
 {
   const pos = [], uv = [], idx = [];
   for(let i = 0; i <= NSEG; i++){
@@ -317,7 +374,20 @@ const mudSuitTex = canvasTex((x, w, h) => {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx); g.computeVertexNormals();
-  scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: dirtTex })));
+  roadMat = new THREE.MeshLambertMaterial({ map: dirtTex });
+  scene.add(new THREE.Mesh(g, roadMat));
+  /* bahu kerikil terang */
+  const pos2 = [], idx2 = [];
+  for(let i = 0; i <= NSEG; i++){
+    const t = i / NSEG, c = trackAt(t * TRACK_LEN);
+    const px = Math.cos(c.h), pz = -Math.sin(c.h), W2 = ROAD_W / 2 + 1.1;
+    pos2.push(c.x - px * W2, c.y + .03, c.z - pz * W2, c.x + px * W2, c.y + .03, c.z + pz * W2);
+    if(i < NSEG){ const a = i * 2; idx2.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g2 = new THREE.BufferGeometry();
+  g2.setAttribute('position', new THREE.Float32BufferAttribute(pos2, 3));
+  g2.setIndex(idx2); g2.computeVertexNormals();
+  scene.add(new THREE.Mesh(g2, new THREE.MeshLambertMaterial({ color: 0xb39b74 })));
   /* bahu jalan: garis batu pinggir */
   const stoneMat = new THREE.MeshLambertMaterial({ color: 0x8a7a68 });
   const stoneGeo = new THREE.DodecahedronGeometry(.5);
@@ -339,14 +409,39 @@ function farMountain(x, z, r, h, col, smoke){
     sm.position.set(x, h + h * .2 - 30, z); scene.add(sm);
   }
 }
-farMountain(-620, TRACK_LEN * .8, 480, 620, 0x8a6a4d, true);
-farMountain(760, TRACK_LEN * .45, 560, 720, 0x77603f, false);
-farMountain(-300, TRACK_LEN + 700, 700, 800, 0x94744e, true);
-farMountain(500, -500, 520, 560, 0x86684a, false);
+farMountain(-620, TRACK_LEN * .8, 480, 620, 0x97826b, true);
+farMountain(760, TRACK_LEN * .45, 560, 720, 0x86748f, false);
+farMountain(-300, TRACK_LEN + 700, 700, 800, 0xa08bb0, true);
+farMountain(500, -500, 520, 560, 0x8d7a68, false);
 /* matahari terbit */
 {
   const sm = new THREE.Mesh(new THREE.SphereGeometry(46, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffdf8a }));
   sm.position.set(-420, 210, TRACK_LEN + 500); scene.add(sm);
+}
+/* ---- Kubah langit gradien + awan ---- */
+{
+  const skyTex = canvasTex((x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#3d6fb8'); g.addColorStop(.42, '#8fb4dd'); g.addColorStop(.68, '#f7c873'); g.addColorStop(.85, '#ff9a4d'); g.addColorStop(1, '#e8793a');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+  }, 64, 512, 1, 1);
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(2400, 14, 10), new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false }));
+  sky.position.set(0, 0, TRACK_LEN / 2); scene.add(sky);
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(90, 10, 10), new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: .55, fog: false }));
+  glow.position.set(-420, 210, TRACK_LEN + 500); scene.add(glow);
+  const cloudTex = dotTexture('rgba(255,255,255,.95)', 'rgba(255,255,255,0)');
+  for(let i = 0; i < 14; i++){
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: .5 + Math.random() * .3, depthWrite: false }));
+    sp.position.set((Math.random() - .5) * 1500, 190 + Math.random() * 130, Math.random() * (TRACK_LEN + 500));
+    sp.scale.set(180 + Math.random() * 200, 34 + Math.random() * 26, 1);
+    scene.add(sp);
+  }
+  /* salju di puncak gunung jauh */
+  [[-620, TRACK_LEN * .8, 480, 620], [760, TRACK_LEN * .45, 560, 720], [-300, TRACK_LEN + 700, 700, 800]].forEach(mn => {
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(mn[2] * .34, mn[3] * .3, 7), new THREE.MeshLambertMaterial({ color: 0xf4f7fa }));
+    cap.position.set(mn[0], mn[3] - 30 - mn[3] * .15 + 8, mn[1]);
+    scene.add(cap);
+  });
 }
 /* ---- Pohon pinus, sawah teras, desa, warung, air terjun ---- */
 const pineTrunk = new THREE.CylinderGeometry(.22, .3, 2.2, 5);
@@ -418,7 +513,7 @@ let waterfall;
   rock.position.set(c.x - px * 30, c.y - 8, c.z - pz * 30); rock.scale.y = 2.4; scene.add(rock);
 }
 /* batu rintangan di jalan */
-const ROCKS = [];
+const ROCKS = []; const rockMeshes = [];
 {
   const rockMat = new THREE.MeshLambertMaterial({ color: 0x77644e });
   for(let i = 0; i < 11; i++){
@@ -426,8 +521,30 @@ const ROCKS = [];
     const lat = (Math.random() < .5 ? -1 : 1) * (.18 + Math.random() * .42), px = Math.cos(c.h), pz = -Math.sin(c.h);
     const r = new THREE.Mesh(new THREE.DodecahedronGeometry(.8 + Math.random() * .5), rockMat);
     r.position.set(c.x + px * lat * ROAD_W / 2, c.y + .5, c.z + pz * lat * ROAD_W / 2);
-    r.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(r);
+    r.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(r); rockMeshes.push(r);
     ROCKS.push({ s, lat });
+  }
+}
+/* pagar pembatas jalan raya (cuma tampil di mode highway) */
+const guardGroup = new THREE.Group(); guardGroup.visible = false; scene.add(guardGroup);
+{
+  const railMat = new THREE.MeshLambertMaterial({ color: 0xc8ccd2 });
+  const postMat = new THREE.MeshLambertMaterial({ color: 0x707880 });
+  const stepS = 16;
+  for(let s0 = 4; s0 < TRACK_LEN - 6; s0 += stepS){
+    const c1 = trackAt(s0), c2 = trackAt(s0 + stepS);
+    [-1, 1].forEach(side => {
+      const off = ROAD_W / 2 + .8;
+      const p1x = c1.x + Math.cos(c1.h) * side * off, p1z = c1.z - Math.sin(c1.h) * side * off;
+      const p2x = c2.x + Math.cos(c2.h) * side * off, p2z = c2.z - Math.sin(c2.h) * side * off;
+      const len = Math.hypot(p2x - p1x, p2z - p1z);
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(.14, .34, len + .4), railMat);
+      rail.position.set((p1x + p2x) / 2, (c1.y + c2.y) / 2 + .85, (p1z + p2z) / 2);
+      rail.rotation.y = Math.atan2(p2x - p1x, p2z - p1z);
+      guardGroup.add(rail);
+      const post = new THREE.Mesh(new THREE.BoxGeometry(.16, .85, .16), postMat);
+      post.position.set(p1x, c1.y + .42, p1z); guardGroup.add(post);
+    });
   }
 }
 /* gapura START & PUNCAK */
@@ -488,57 +605,102 @@ function spawnPuff(x, y, z){
 
 /* ================= PEMBALAP ================= */
 const RIDER_DEFS = [
-  { name:'DEVILCUPS', tag:'KAMU', jacket:0xd92323, helmet:0xf5f5f5, skin:0xf1c27d, player:true },
-  { name:'BANG JAGO', tag:'Barbar • suka nyenggol', jacket:0x22242a, helmet:0xd92323, skin:0xe0ac69, top:.99, acc:1.05, amp:.62, freq:.9, aggro:1 },
-  { name:'MAS ALUS', tag:'Kalem • raja tikungan', jacket:0x2b6cb0, helmet:0xffffff, skin:0xffdbac, top:.97, acc:.95, amp:.3, freq:.6, aggro:0 },
-  { name:'MBAK RANI', tag:'Berani • jago kabut', jacket:0x9b2c8f, helmet:0xffd93b, skin:0xf1c27d, top:.98, acc:1.0, amp:.42, freq:.75, aggro:0 },
-  { name:'PAK DEWA', tag:'Veteran • stabil', jacket:0x5a4632, helmet:0x8a8f98, skin:0xe0ac69, top:.95, acc:.9, amp:.26, freq:.5, aggro:0 },
-  { name:'DEK BIMA', tag:'Nekat • nitro terus', jacket:0x2f9e44, helmet:0x3a86ff, skin:0xffdbac, top:1.0, acc:1.1, amp:.7, freq:1.2, aggro:.4 },
-  { name:'OM GALAK', tag:'Tukang blokir jalur', jacket:0x784212, helmet:0x22242a, skin:0x8d5524, top:.93, acc:.92, amp:.8, freq:.45, aggro:.6 },
-  { name:'SISKA', tag:'Lincah • start kilat', jacket:0xe8590c, helmet:0x9b2c8f, skin:0xf1c27d, top:.96, acc:1.12, amp:.5, freq:1.0, aggro:0 },
+  { name:'DEVILCUPS', tag:'KAMU', jacket:0xd92323, helmet:0xf5f5f5, skin:0xf1c27d, face:'plain', player:true },
+  { name:'BANG JAGO', tag:'Barbar • suka nyenggol', jacket:0x22242a, helmet:0xd92323, skin:0xe0ac69, face:'beard', top:.99, acc:1.05, amp:.62, freq:.9, aggro:1 },
+  { name:'MAS ALUS', tag:'Kalem • raja tikungan', jacket:0x2b6cb0, helmet:0xffffff, skin:0xffdbac, face:'plain', top:.97, acc:.95, amp:.3, freq:.6, aggro:0 },
+  { name:'MBAK RANI', tag:'Berani • jago kabut', jacket:0x9b2c8f, helmet:0xffd93b, skin:0xf1c27d, face:'female', top:.98, acc:1.0, amp:.42, freq:.75, aggro:0 },
+  { name:'PAK DEWA', tag:'Veteran • stabil', jacket:0x5a4632, helmet:0x8a8f98, skin:0xe0ac69, face:'mustache', top:.95, acc:.9, amp:.26, freq:.5, aggro:0 },
+  { name:'DEK BIMA', tag:'Nekat • nitro terus', jacket:0x2f9e44, helmet:0x3a86ff, skin:0xffdbac, face:'plain', top:1.0, acc:1.1, amp:.7, freq:1.2, aggro:.4 },
+  { name:'OM GALAK', tag:'Tukang blokir jalur', jacket:0x784212, helmet:0x22242a, skin:0x8d5524, face:'beard', top:.93, acc:.92, amp:.8, freq:.45, aggro:.6 },
+  { name:'SISKA', tag:'Lincah • start kilat', jacket:0xe8590c, helmet:0x9b2c8f, skin:0xf1c27d, face:'female', top:.96, acc:1.12, amp:.5, freq:1.0, aggro:0 },
 ];
 function buildBike(def, bikeColor){
   const g = new THREE.Group();
-  const tireM = new THREE.MeshLambertMaterial({ color: 0x1c1c20 });
-  const metalM = new THREE.MeshLambertMaterial({ color: 0x3c4048 });
+  const tireM = new THREE.MeshLambertMaterial({ map: tireTex });
+  const darkM = new THREE.MeshLambertMaterial({ color: 0x23252b });
+  const metalM = new THREE.MeshLambertMaterial({ color: 0x9aa0a8 });
+  const chromeM = new THREE.MeshLambertMaterial({ color: 0xd7dce2 });
   const colM = new THREE.MeshLambertMaterial({ color: bikeColor });
-  const wheelG = new THREE.CylinderGeometry(.44, .44, .2, 10);
-  const wF = new THREE.Mesh(wheelG, tireM); wF.rotation.z = Math.PI / 2; wF.position.set(0, .44, .95); g.add(wF);
-  const wR = new THREE.Mesh(wheelG, tireM); wR.rotation.z = Math.PI / 2; wR.position.set(0, .44, -.85); g.add(wR);
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(.34, .3, 1.5), colM); frame.position.set(0, .72, .05); frame.rotation.x = -.1; g.add(frame);
-  const tank = new THREE.Mesh(new THREE.BoxGeometry(.44, .34, .8), colM); tank.position.set(0, .98, .3); g.add(tank);
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(.4, .14, .9), new THREE.MeshLambertMaterial({ color: 0x22242a })); seat.position.set(0, 1.02, -.45); g.add(seat);
-  const fork = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.15, 5), metalM); fork.position.set(0, .95, .92); fork.rotation.x = .42; g.add(fork);
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(.62, .07, .07), metalM); bar.position.set(0, 1.38, .78); g.add(bar);
-  const lamp = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfff6bf })); lamp.position.set(0, 1.22, 1.02); g.add(lamp);
-  const plate = new THREE.Mesh(new THREE.BoxGeometry(.5, .4, .05), new THREE.MeshLambertMaterial({ color: 0xf5f5f5 })); plate.position.set(0, 1.18, 1.0); plate.rotation.x = .3; g.add(plate);
-  /* pembalap */
+  /* roda ban tahu + jari-jari */
+  function wheel(r){
+    const w = new THREE.Group();
+    const inner = new THREE.Group(); inner.rotation.y = Math.PI / 2; w.add(inner);
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(r, .13, 8, 14), tireM); inner.add(tire);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .13, 8), metalM); hub.rotation.x = Math.PI / 2; inner.add(hub);
+    for(let k = 0; k < 3; k++){ const sp = new THREE.Mesh(new THREE.BoxGeometry(.045, r * 1.8, .045), metalM); sp.rotation.z = k * Math.PI / 3; inner.add(sp); }
+    return w;
+  }
+  const wF = wheel(.46); wF.position.set(0, .46, .98); g.add(wF);
+  const wR = wheel(.46); wR.position.set(0, .46, -.88); g.add(wR);
+  /* rangka + mesin */
+  const engine = new THREE.Mesh(new THREE.BoxGeometry(.36, .34, .5), darkM); engine.position.set(0, .52, -.02); g.add(engine);
+  const skid = new THREE.Mesh(new THREE.BoxGeometry(.4, .06, .62), metalM); skid.position.set(0, .33, -.02); g.add(skid);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(.3, .16, 1.15), colM); frame.position.set(0, .78, .08); frame.rotation.x = -.06; g.add(frame);
+  const tank = new THREE.Mesh(new THREE.BoxGeometry(.46, .3, .72), colM); tank.position.set(0, .97, .3); tank.rotation.x = .1; g.add(tank);
+  const shroudL = new THREE.Mesh(new THREE.BoxGeometry(.06, .34, .55), colM); shroudL.position.set(-.26, .88, .42); shroudL.rotation.z = .25; g.add(shroudL);
+  const shroudR = shroudL.clone(); shroudR.position.x = .26; shroudR.rotation.z = -.25; g.add(shroudR);
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(.36, .13, 1.0), darkM); seat.position.set(0, 1.03, -.42); seat.rotation.x = -.05; g.add(seat);
+  /* garpu depan + stang + pelindung tangan */
+  const fork = new THREE.Mesh(new THREE.CylinderGeometry(.045, .045, 1.25, 6), chromeM); fork.position.set(0, .95, .95); fork.rotation.x = .4; g.add(fork);
+  const fork2 = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .6, 6), colM); fork2.position.set(0, 1.22, .84); fork2.rotation.x = .4; g.add(fork2);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(.64, .06, .06), darkM); bar.position.set(0, 1.42, .76); g.add(bar);
+  const guardL = new THREE.Mesh(new THREE.BoxGeometry(.2, .1, .3), colM); guardL.position.set(-.36, 1.42, .8); g.add(guardL);
+  const guardR = guardL.clone(); guardR.position.x = .36; g.add(guardR);
+  /* spakbor depan tinggi + plat nomor + lampu */
+  const fenderF = new THREE.Mesh(new THREE.BoxGeometry(.3, .05, .62), colM); fenderF.position.set(0, .95, 1.06); fenderF.rotation.x = -.28; g.add(fenderF);
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(.42, .46, .04), new THREE.MeshLambertMaterial({ color: 0xf5f5f5 })); plate.position.set(0, 1.24, .99); plate.rotation.x = .32; g.add(plate);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfff3b0 })); lamp.position.set(0, 1.3, 1.03); g.add(lamp);
+  /* knalpot perak naik ke atas + spakbor belakang */
+  const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(.06, .075, .95, 7), chromeM); exhaust.position.set(.2, .78, -.45); exhaust.rotation.x = Math.PI / 2 - .22; g.add(exhaust);
+  const muffler = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .4, 8), metalM); muffler.position.set(.21, .94, -.82); muffler.rotation.x = Math.PI / 2 - .22; g.add(muffler);
+  const fenderR = new THREE.Mesh(new THREE.BoxGeometry(.3, .05, .55), colM); fenderR.position.set(0, .88, -1.05); fenderR.rotation.x = .3; g.add(fenderR);
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(.1, .06, .04), new THREE.MeshBasicMaterial({ color: 0xff2a2a })); tail.position.set(0, .95, -1.3); g.add(tail);
+  const armSwing = new THREE.Mesh(new THREE.BoxGeometry(.12, .1, .85), darkM); armSwing.position.set(0, .44, -.5); g.add(armSwing);
+  /* bayangan blob di tanah */
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.15, 10), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .3, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = .04; shadow.scale.set(.62, 1.25, 1); g.add(shadow);
+  /* ===== pembalap berwajah ===== */
   const body = new THREE.Group(); g.add(body);
-  const suitM = new THREE.MeshLambertMaterial({ color: def.jacket, map: mudSuitTex });
-  const pantsM = new THREE.MeshLambertMaterial({ color: 0x2e3138 });
+  const suitM = new THREE.MeshLambertMaterial({ color: def.jacket, map: jacketTexture(def) });
+  const suitArmM = new THREE.MeshLambertMaterial({ color: def.jacket, map: mudSuitTex });
+  const pantsM = new THREE.MeshLambertMaterial({ color: 0x2e3138, map: mudSuitTex });
   const skinM = new THREE.MeshLambertMaterial({ color: def.skin });
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(.52, .68, .3), suitM); torso.position.set(0, 1.52, -.18); torso.rotation.x = .38; body.add(torso);
-  const head = new THREE.Group(); head.position.set(0, 1.98, .02); body.add(head);
-  const face = new THREE.Mesh(new THREE.SphereGeometry(.17, 8, 8), skinM); head.add(face);
-  const helm = new THREE.Mesh(new THREE.SphereGeometry(.21, 9, 8), new THREE.MeshLambertMaterial({ color: def.helmet })); helm.position.y = .045; helm.scale.y = .92; head.add(helm);
-  const visor = new THREE.Mesh(new THREE.BoxGeometry(.3, .11, .05), new THREE.MeshBasicMaterial({ color: 0x20262e })); visor.position.set(0, .02, .19); head.add(visor);
-  const peak = new THREE.Mesh(new THREE.BoxGeometry(.34, .04, .22), new THREE.MeshLambertMaterial({ color: def.helmet })); peak.position.set(0, .13, .22); peak.rotation.x = -.25; head.add(peak);
-  const armL = new THREE.Mesh(new THREE.BoxGeometry(.13, .55, .13), suitM); armL.position.set(-.33, 1.62, .32); armL.rotation.x = -.9; body.add(armL);
-  const armR = armL.clone(); armR.position.x = .33; body.add(armR);
-  const legL = new THREE.Group(); legL.position.set(-.2, 1.05, -.3); body.add(legL);
-  const legLm = new THREE.Mesh(new THREE.BoxGeometry(.16, .62, .16), pantsM); legLm.position.y = -.28; legL.add(legLm);
-  const bootL = new THREE.Mesh(new THREE.BoxGeometry(.17, .13, .34), new THREE.MeshLambertMaterial({ color: 0x4a3220 })); bootL.position.set(0, -.58, .07); legL.add(bootL);
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(.54, .7, .32), suitM); torso.position.set(0, 1.55, -.16); torso.rotation.x = .36; body.add(torso);
+  const hips = new THREE.Mesh(new THREE.BoxGeometry(.46, .26, .3), pantsM); hips.position.set(0, 1.16, -.34); body.add(hips);
+  const head = new THREE.Group(); head.position.set(0, 2.02, .04); body.add(head);
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(.175, 10, 9), skinM); skull.scale.set(.92, 1.05, .98); head.add(skull);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(.27, .27), new THREE.MeshBasicMaterial({ map: faceTexture(def), transparent: false }));
+  face.position.set(0, -.01, .155); head.add(face);
+  const nose = new THREE.Mesh(new THREE.BoxGeometry(.045, .07, .05), skinM); nose.position.set(0, -.03, .17); head.add(nose);
+  const shell = new THREE.Mesh(new THREE.SphereGeometry(.215, 10, 7, 0, Math.PI * 2, 0, Math.PI * .58), new THREE.MeshLambertMaterial({ color: def.helmet, side: THREE.DoubleSide }));
+  shell.position.y = .05; head.add(shell);
+  const chin = new THREE.Mesh(new THREE.BoxGeometry(.3, .1, .24), new THREE.MeshLambertMaterial({ color: def.helmet })); chin.position.set(0, -.13, .1); head.add(chin);
+  const peak = new THREE.Mesh(new THREE.BoxGeometry(.36, .035, .26), new THREE.MeshLambertMaterial({ color: def.helmet })); peak.position.set(0, .1, .24); peak.rotation.x = -.22; head.add(peak);
+  const visor = new THREE.Mesh(new THREE.PlaneGeometry(.3, .15), new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: .16, side: THREE.DoubleSide }));
+  visor.position.set(0, .03, .21); visor.rotation.x = -.15; head.add(visor);
+  const strap = new THREE.Mesh(new THREE.BoxGeometry(.4, .06, .4), new THREE.MeshLambertMaterial({ color: 0x22242a })); strap.position.y = .09; head.add(strap);
+  const armL = new THREE.Group(); armL.position.set(-.31, 1.82, -.05); body.add(armL);
+  const armLm = new THREE.Mesh(new THREE.BoxGeometry(.14, .58, .14), suitArmM); armLm.position.y = -.26; armL.add(armLm);
+  const handL = new THREE.Mesh(new THREE.SphereGeometry(.075, 7, 7), darkM); handL.position.set(0, -.54, .02); armL.add(handL);
+  armL.rotation.set(-.95, 0, .18);
+  const armR = new THREE.Group(); armR.position.set(.31, 1.82, -.05); body.add(armR);
+  const armRm = armLm.clone(); armR.add(armRm);
+  const handR = handL.clone(); armR.add(handR);
+  armR.rotation.set(-.95, 0, -.18);
+  const legL = new THREE.Group(); legL.position.set(-.19, 1.08, -.32); body.add(legL);
+  const legLm = new THREE.Mesh(new THREE.BoxGeometry(.17, .64, .17), pantsM); legLm.position.y = -.3; legL.add(legLm);
+  const bootL = new THREE.Mesh(new THREE.BoxGeometry(.18, .15, .36), new THREE.MeshLambertMaterial({ color: 0x4a3220, map: mudSuitTex })); bootL.position.set(0, -.62, .08); legL.add(bootL);
   legL.rotation.x = -.55;
-  const legR = new THREE.Group(); legR.position.set(.2, 1.05, -.3); body.add(legR);
+  const legR = new THREE.Group(); legR.position.set(.19, 1.08, -.32); body.add(legR);
   const legRm = legLm.clone(); legR.add(legRm);
   const bootR = bootL.clone(); legR.add(bootR);
   legR.rotation.x = -.55;
   scene.add(g);
-  return { grp: g, body, torso, head, legL, legR, wF, wR };
+  return { grp: g, body, torso, head, legL, legR, wF, wR, armL, armR };
 }
 
 /* ================= STATE BALAP ================= */
-let MODE = 'up', dirSign = 1, grip = 1, raceState = 'menu', raceTime = 0, countT = 0, slowmo = 1;
+let MODE = 'up', dirSign = 1, grip = 1, speedMul = 1, raceState = 'menu', raceTime = 0, countT = 0, slowmo = 1;
 let racers = [], player = null, camShake = 0, lightningT = 5, breathT = 0, finOrder = [], score = 0, nyali = 0, nyaliBoost = false, fuel = 100, raceCoins = 0;
 const input = { steer: 0, gas: false, brake: false, nitro: false };
 const ROCKS_U = ROCKS.map(r => ({ u: 0, lat: r.lat, s: r.s }));
@@ -565,6 +727,11 @@ function makeRacers(){
 function applyMode(){
   dirSign = MODE === 'down' ? -1 : 1;
   grip = MODE === 'storm' ? .55 : 1;
+  const isHwy = MODE === 'highway';
+  speedMul = isHwy ? 1.16 : 1;
+  roadMat.map = isHwy ? asphaltTex : dirtTex; roadMat.needsUpdate = true;
+  guardGroup.visible = isHwy;
+  rockMeshes.forEach(m => m.visible = !isHwy);
   fuel = 100; score = 0; nyali = 0; nyaliBoost = false; raceTime = 0; finOrder = [];
   $('fuelWrap').style.display = MODE === 'survival' ? 'block' : 'none';
   if(MODE === 'fog'){
@@ -574,8 +741,8 @@ function applyMode(){
     scene.fog.density = .011; scene.fog.color.set(0x707880); scene.background.set(0x5f686f);
     sun.intensity = .8; hemi.intensity = .7;
   } else {
-    scene.fog.density = .0038; scene.fog.color.set(0xe8a266); scene.background.set(0xf7a54a);
-    sun.intensity = 1.6; hemi.intensity = .95;
+    scene.fog.density = .0027; scene.fog.color.set(0xdfa06b); scene.background.set(0xf7a54a);
+    sun.intensity = 1.6; hemi.intensity = .9;
   }
   rain.p.visible = MODE === 'storm';
   if(rainGain) rainGain.gain.value = MODE === 'storm' ? .1 : 0;
@@ -607,6 +774,9 @@ function placeRacer(r, dt){
   r.vis.legL.rotation.x = slide && r.lat < 0 ? .35 : -.55;
   r.vis.legR.rotation.x = slide && r.lat >= 0 ? .35 : -.55;
   r.vis.body.position.y = Math.abs(r.lat) > 1 ? Math.sin(raceTime * 40 + r.i) * .05 : 0;
+  r.vis.torso.scale.y = 1 + Math.sin(raceTime * 2.2 + r.i * 1.7) * .018;
+  r.vis.head.rotation.y = raceState !== 'race' ? Math.sin(raceTime * .6 + r.i * 2.1) * .5 : clamp(-(r.steerVis || 0) * .4, -.4, .4);
+  r.vis.head.rotation.x = r.crashT > 0 ? .5 : Math.sin(raceTime * 1.7 + r.i) * .05;
 }
 function doCrash(r, fall){
   if(r.crashT > 0) return;
@@ -637,7 +807,7 @@ function step(dt){
     }
     let top, acc;
     if(r.isPlayer){
-      top = bike.top * (nyaliBoost ? 1.18 : 1);
+      top = bike.top * speedMul * (nyaliBoost ? 1.18 : 1);
       acc = bike.acc;
       const aheadY = trackAt(clamp(worldS(r.u + 8), 0, TRACK_LEN)).y, hereY = trackAt(clamp(worldS(r.u), 0, TRACK_LEN)).y;
       const grade = (aheadY - hereY) / 8;
@@ -685,7 +855,7 @@ function step(dt){
     } else {
       /* AI */
       const curve = Math.abs(Math.sin(r.u * .012 + r.phase)) * .25;
-      top = 30 * r.def.top * (1 - curve * .5);
+      top = 30 * speedMul * r.def.top * (1 - curve * .5);
       const rubber = clamp((player.u - r.u) * .0012, -.09, .13);
       top *= (1 + rubber);
       acc = 13 * r.def.acc;
@@ -698,7 +868,7 @@ function step(dt){
     r.u += r.speed * dt;
     /* batu */
     if(r.ghostT > 0) r.ghostT -= dt;
-    else {
+    else if(MODE !== 'highway') {
       for(const rk of ROCKS_U){
         if(Math.abs(r.u - rk.u) < 2.1 && Math.abs(r.lat - rk.lat) < .3){ doCrash(r, false); break; }
       }
