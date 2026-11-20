@@ -187,7 +187,7 @@ function audioInit(){
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = AC.createGain(); masterGain.gain.value = volLevel; masterGain.connect(AC.destination);
-    startCustomMusic(); startDangdut();
+    startCustomMusic();
   } catch(e){}
 }
 function throttle(k, ms){ const n = performance.now(); if(lastPlay[k] && n - lastPlay[k] < ms) return true; lastPlay[k] = n; return false; }
@@ -211,7 +211,7 @@ function startCustomMusic(){
     });
   } catch(e){}
 }
-function sThunder(){
+function sThunder(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn) return;
   const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
   o.type = 'sine';
@@ -220,14 +220,14 @@ function sThunder(){
   g.gain.exponentialRampToValueAtTime(.22, t + .12); g.gain.exponentialRampToValueAtTime(.0001, t + 1.9);
   o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + 2);
 }
-function sPunch(){
+function sPunch(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn || throttle('punch', 70)) return;
   const t = AC.currentTime, src = AC.createBufferSource(); src.buffer = noiseBuf(.09);
   const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
   const g = AC.createGain(); g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.001, t + .09);
   src.connect(f); f.connect(g); g.connect(masterGain); src.start();
 }
-function sShot(){
+function sShot(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn || throttle('shot', 60)) return;
   const t = AC.currentTime, src = AC.createBufferSource(); src.buffer = noiseBuf(.14);
   const f = AC.createBiquadFilter(); f.type = 'lowpass';
@@ -239,7 +239,7 @@ function sShot(){
   og.gain.setValueAtTime(.25, t); og.gain.exponentialRampToValueAtTime(.001, t + .11);
   o.connect(og); og.connect(masterGain); o.start(t); o.stop(t + .12);
 }
-function sCash(){
+function sCash(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn) return;
   const t = AC.currentTime;
   [1318, 1760].forEach((fq, i) => {
@@ -249,14 +249,14 @@ function sCash(){
     o.connect(g); g.connect(masterGain); o.start(t + i * .07); o.stop(t + i * .07 + .25);
   });
 }
-function sHorn(){
+function sHorn(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn || throttle('horn', 300)) return;
   const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
   o.type = 'square'; o.frequency.value = rnd(340, 460);
   g.gain.setValueAtTime(.05, t); g.gain.exponentialRampToValueAtTime(.0001, t + rnd(.15, .4));
   o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .45);
 }
-function sStep(){
+function sStep(){ return; // dimatikan: hanya musik kiriman Balung yg berbunyi
   if(!AC || !soundOn || throttle('step', 150)) return;
   const t = AC.currentTime, src = AC.createBufferSource(); src.buffer = noiseBuf(.05);
   const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
@@ -291,7 +291,7 @@ function startDangdut(){
   }, 215);
 }
 let sirenOsc = null, sirenGain = null;
-function setSiren(on, vol){
+function setSiren(on, vol){ return; // dimatikan total
   if(!AC) return;
   if(on && !sirenOsc){
     sirenOsc = AC.createOscillator(); sirenOsc.type = 'triangle';
@@ -316,7 +316,7 @@ $('#volSlider').addEventListener('input', e => {
   $('#volBtn').textContent = volLevel === 0 ? '🔇' : volLevel < .4 ? '🔈' : volLevel < .75 ? '🔉' : '🔊';
 });
 let engineOsc = null, engineGain = null;
-function setEngine(on, speedRatio){
+function setEngine(on, speedRatio){ return; // dimatikan total
   if(!AC) return;
   if(on && !engineOsc){
     engineOsc = AC.createOscillator(); engineOsc.type = 'sawtooth';
