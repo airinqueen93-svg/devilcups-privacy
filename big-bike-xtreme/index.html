@@ -922,7 +922,7 @@ function initAudio(){
     musicGain = AC.createGain(); musicGain.gain.value = .85 * volLevel; musicGain.connect(AC.destination);
     /* mesin */
     engOsc = AC.createOscillator(); engOsc.type = 'sawtooth'; engOsc.frequency.value = 50;
-    engOsc2 = AC.createOscillator(); engOsc2.type = 'square'; engOsc2.frequency.value = 25;
+    engOsc2 = AC.createOscillator(); engOsc2.type = 'sine'; engOsc2.frequency.value = 25;
     engFilter = AC.createBiquadFilter(); engFilter.type = 'lowpass'; engFilter.frequency.value = 500; engFilter.Q.value = 2;
     engGain = AC.createGain(); engGain.gain.value = 0;
     engOsc.connect(engFilter); engOsc2.connect(engFilter); engFilter.connect(engGain); engGain.connect(masterGain);
@@ -988,12 +988,11 @@ function startBeat(){
       const s = step % 8, bar = Math.floor(step / 8) % 4;
       if(G.mode === 'nature' || G.mode === 'stunt'){
         if(s === 0 || s === 4) thump(nextT, 95, .3, .18);
-        if(s === 3 || s === 6) tak(nextT, .1);
+        /* tak dihapus: bunyi gletek */
         if(s === 0) bass(nextT, roots[bar]);
       } else {
         if(s === 0 || s === 3 || s === 6) thump(nextT, 110, .34, .16); /* dang */
-        if(s === 1 || s === 4 || s === 7) tak(nextT, .13);            /* tak */
-        if(s === 2 || s === 5) tak(nextT, .07);
+        /* tak dihapus: bunyi gletek */
         if(s === 0 || s === 4) bass(nextT, roots[bar] * (s === 4 ? 1.335 : 1));
       }
       nextT += spb(); step++;
