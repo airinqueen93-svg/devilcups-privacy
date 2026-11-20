@@ -82,6 +82,9 @@
     background:rgba(139,28,28,.85); border-color:#ffd43b; flex-direction:column; line-height:1; }
   #btnFire span { font-size:10.5px; font-weight:900; margin-top:2px; letter-spacing:.5px; }
   #btnFire.held { background:rgba(220,50,50,.92); }
+  #vig { position:absolute; inset:0; pointer-events:none; z-index:14;
+    background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.6) 100%); }
+  #bolt { position:absolute; inset:0; pointer-events:none; z-index:16; background:#dfe8ff; opacity:0; }
   #loadErr { position:absolute; inset:0; z-index:60; display:none; align-items:center; justify-content:center; background:#14100c; color:#fff; padding:22px; text-align:center; font-size:14px; line-height:1.6; }
 </style>
 </head>
@@ -93,6 +96,7 @@
   <div id="glWrap">
     <div id="vig"></div>
     <div id="radioBox"></div>
+    <div id="vig"></div><div id="bolt"></div>
     <div id="padL"><div class="pbtn" id="btnUp">▲</div><div class="pbtn" id="btnLeft">◀</div><div class="pbtn" id="btnDown">▼</div><div class="pbtn" id="btnRight">▶</div></div>
     <div class="pbtn" id="btnFire">🔫<span>TEMBAK</span></div>
     <div id="loadErr"><div>⚠️ Gagal memuat mesin 3D (Three.js).<br>Game ini butuh koneksi internet untuk membuka.<br>Coba refresh ya, Komandan.</div></div>
@@ -289,8 +293,34 @@ renderer.setPixelRatio(Math.min(1.75, window.devicePixelRatio || 1));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 wrap.appendChild(renderer.domElement);
+function sThunder(){
+  if(!AC || !soundOn) return;
+  const t = AC.currentTime, src = AC.createBufferSource(); src.buffer = noiseBuf(2.2);
+  const f = AC.createBiquadFilter(); f.type = 'lowpass';
+  f.frequency.setValueAtTime(380, t); f.frequency.exponentialRampToValueAtTime(55, t + 2);
+  const gn = AC.createGain(); gn.gain.setValueAtTime(.0001, t);
+  gn.gain.exponentialRampToValueAtTime(.5, t + .09);
+  gn.gain.exponentialRampToValueAtTime(.0001, t + 2.1);
+  src.connect(f); f.connect(gn); gn.connect(masterGain); src.start(); src.stop(t + 2.2);
+}
+function sGroan(vol){
+  if(!AC || !soundOn) return;
+  const t = AC.currentTime, o = AC.createOscillator(); o.type = 'sawtooth';
+  const f0 = rnd(75, 115);
+  o.frequency.setValueAtTime(f0, t);
+  o.frequency.exponentialRampToValueAtTime(f0 * .55, t + .8);
+  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420;
+  const lfo = AC.createOscillator(); lfo.frequency.value = 11;
+  const lg = AC.createGain(); lg.gain.value = vol * .5;
+  const gn = AC.createGain(); gn.gain.setValueAtTime(.0001, t);
+  gn.gain.exponentialRampToValueAtTime(vol, t + .15);
+  gn.gain.exponentialRampToValueAtTime(.0001, t + .9);
+  lfo.connect(lg); lg.connect(gn.gain);
+  o.connect(f); f.connect(gn); gn.connect(masterGain);
+  o.start(t); o.stop(t + .95); lfo.start(t); lfo.stop(t + .95);
+}
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xc7a184, 55, 165);
+scene.fog = new THREE.Fog(0x35302c, 24, 115);
 const camera = new THREE.PerspectiveCamera(55, 1, .1, 420);
 let camAngle = 0, camAngleT = 0;
 function layout(){
@@ -299,10 +329,10 @@ function layout(){
 }
 window.addEventListener('resize', layout);
 
-const hemi = new THREE.HemisphereLight(0x93a7c8, 0x4a3b2c, .85); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0x7787a8, 0x33291f, .55); scene.add(hemi);
 const fill = new THREE.DirectionalLight(0xffd9b0, .38);
 fill.position.set(-24, 20, 26); scene.add(fill);
-const sunLight = new THREE.DirectionalLight(0xffab5e, 1.35);
+const sunLight = new THREE.DirectionalLight(0xffab5e, .85);
 sunLight.position.set(38, 40, -20);
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(2048, 2048);
@@ -319,8 +349,8 @@ function canvasTex(w, h, draw){
 }
 const skyTex = canvasTex(64, 512, (g, w, h) => {
   const gr = g.createLinearGradient(0, 0, 0, h);
-  gr.addColorStop(0, '#2c4a72'); gr.addColorStop(.4, '#7d94b5');
-  gr.addColorStop(.68, '#d9a06a'); gr.addColorStop(.85, '#f08c3c'); gr.addColorStop(1, '#c65f2e');
+  gr.addColorStop(0, '#131a29'); gr.addColorStop(.4, '#3d4457');
+  gr.addColorStop(.68, '#6e4a3d'); gr.addColorStop(.85, '#8a4a28'); gr.addColorStop(1, '#54301a');
   g.fillStyle = gr; g.fillRect(0, 0, w, h);
 });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(210, 20, 14),
@@ -644,7 +674,7 @@ function buildHuman(cfg){
   // detailed rifle
   let gun = null, flash = null, att = {};
   if(!cfg.civ){
-    gun = new THREE.Group(); gun.position.set(.34, .42, -.07); torsoG.add(gun);
+    gun = new THREE.Group(); gun.position.set(.02, -.3, .1); gun.rotation.z = -Math.PI / 2; armRo.foreP.add(gun);
     bx(.5, .11, .09, darkM, 0, 0, 0, gun);                       // receiver
     bx(.34, .075, .07, darkM, .4, .005, 0, gun);                 // handguard
     const barrelGeo = new THREE.CylinderGeometry(.024, .024, .3, 6); barrelGeo.rotateZ(Math.PI / 2);
@@ -934,7 +964,7 @@ function updateObjective(){
   let phase = 'Evakuasi helikopter';
   if(civ < 3 || post < 3) phase = 'Selesaikan misi';
   $('#objText').innerHTML =
-    `Selamatkan warga <b>${civ}/3</b> • Hancurkan pos <b>${post}/3</b> • ${G.heliCalled ? '🚁 <b>KE HELIKOPTER!</b>' : phase}`;
+    `Selamatkan warga <b>${civ}/3</b> • Hancurkan pos <b>${post}/3</b> • 💀 <b>${G.kills}</b> • ${G.heliCalled ? '🚁 <b>KE HELIKOPTER!</b>' : phase}`;
 }
 function checkHeliCall(){
   if(G.heliCalled || G.civSafe < 3 || G.postsDown < 3) return;
@@ -1033,7 +1063,7 @@ function stepActor(a, dt, t){
   else R.mouth.scale.y = 1;
   // muzzle flash + recoil
   if(a.flashT > 0){ a.flashT -= dt; if(a.flashT <= 0 && R.flash) R.flash.visible = false; }
-  if(a.recoilT > 0){ a.recoilT = Math.max(0, a.recoilT - dt * 7); if(R.gun) R.gun.position.x = .34 - a.recoilT * .055; }
+  if(a.recoilT > 0){ a.recoilT = Math.max(0, a.recoilT - dt * 7); if(R.gun) R.gun.position.y = -.3 + a.recoilT * .06; }
   // grenade throw arm
   if(a.throwT > 0){ a.throwT -= dt;
     R.armR.rotation.z = 1.05 + Math.sin(Math.max(0, a.throwT) / .38 * Math.PI) * 1.15; }
@@ -1101,6 +1131,7 @@ function stepActor(a, dt, t){
     R.armR2.rotation.z = aiming ? .22 : .38;
     R.armL.rotation.z = aiming ? 1.12 : .5 + (moving ? -Math.sin(a.phase) * .06 : 0);
     R.armL2.rotation.z = aiming ? .55 : .5;
+    R.armL2.rotation.y = aiming ? -.4 : 0;
     if(a.reloading > 0){ a.reloading -= dt; R.gun.rotation.x = Math.sin((1 - a.reloading / 1.6) * Math.PI) * .8;
       if(a.reloading <= 0){ a.ammo = 30; R.gun.rotation.x = 0; if(a === active()) $('#ammoCnt').textContent = 30; } }
   }
@@ -1287,6 +1318,53 @@ function update(){
   dust.rotation.y = t * .004;
   for(const p of posts) if(p.alive) p.flagM.rotation.y = Math.sin(t * 3.2 + p.idx * 2) * .35;
   pillar.material.opacity = .1 + Math.sin(t * 2.2) * .045;
+  if(G.mode === 'play' && !G.over){
+    // petir + geraman: suasana mencekam
+    boltT = Math.max(0, boltT - dt);
+    if(t > nextBolt){ nextBolt = t + rnd(6, 15); boltT = .22; setTimeout(sThunder, rnd(250, 900)); }
+    sunLight.intensity = .85 + (boltT > 0 ? Math.random() * 2.4 * boltT / .22 : 0);
+    const boltEl = document.getElementById('bolt');
+    if(boltEl) boltEl.style.opacity = boltT > 0 ? (Math.random() * .45 * boltT / .22).toFixed(2) : 0;
+    groanT -= dt;
+    if(groanT <= 0){
+      groanT = rnd(3.5, 8);
+      const act = active(); let best = null, bd = 30;
+      if(act) for(const e of enemies){
+        if(!e.zombie || e.state === 'dead') continue;
+        const d = dist2d(e, act); if(d < bd){ bd = d; best = e; }
+      }
+      if(best) sGroan(.04 + .13 * (1 - bd / 30));
+    }
+    // horde zombi: datang terus, total bisa ribuan
+    hordeT -= dt;
+    if(hordeT <= 0){
+      hordeT = .6;
+      let aliveZ = 0; for(const e of enemies) if(e.zombie && e.state !== 'dead') aliveZ++;
+      if(aliveZ < 26){
+        let px = 0, pz = 0, ok = false;
+        for(let k = 0; k < 8 && !ok; k++){
+          const side = (Math.random() * 4) | 0;
+          px = side === 0 ? -43 : side === 1 ? 43 : rnd(-40, 40);
+          pz = side === 2 ? -27 : side === 3 ? 27 : rnd(-25, 25);
+          ok = true;
+          for(const s of squad)
+            if(Math.hypot(s.group.position.x - px, s.group.position.z - pz) < 17){ ok = false; break; }
+        }
+        if(ok){
+          const e = mkActor(ZOMBIE_CFG, px, pz, 'enemy');
+          e.zombie = true; e.roam = true; e.atkCd = rnd(.2, .9);
+          e.speed = Math.min(2.6, rnd(1.5, 2.15) + G.kills * .004);
+          if(Math.random() < .45) e.hp = e.maxHp = 40;
+          enemies.push(e);
+        }
+      }
+    }
+    if(G.kills >= nextWaveAt){
+      nextWaveAt += 25;
+      radio('markas', 'Gelombang zombi berikutnya datang! Sudah ' + G.kills + ' tumbang.');
+      sThunder();
+    }
+  }
   if((strafeDir !== 0 || fwdDir !== 0) && G.mode === 'play' && !G.over){
     const a = active();
     if(a && a.state === 'up' && a.channel <= 0){
@@ -1435,6 +1513,7 @@ for(const [id, key] of [['tgScope', 'scope'], ['tgSilencer', 'sil'], ['tgGrip', 
 }
 /* ================= TOMBOL BELOK + TEMBAK ================= */
 let strafeDir = 0, fwdDir = 0, fireInt = null;
+let boltT = 0, nextBolt = 9, groanT = 5, hordeT = 0, nextWaveAt = 25;
 function manualFire(){
   if(G.mode !== 'play' || G.over) return;
   const a = active(); if(!a || a.state !== 'up' || a.reloading > 0 || a.channel > 0) return;
