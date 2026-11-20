@@ -64,6 +64,8 @@
   .boom { position:absolute; transform:translate(-50%,-50%); font-size:30px; animation:boomA .7s ease-out forwards; }
   @keyframes boomA { 0%{ scale:.4; opacity:1;} 100%{ scale:1.7; opacity:0;} }
   .confetti { position:absolute; top:-12px; width:9px; height:14px; animation:fall linear forwards; }
+  #callBtn { margin:11px auto 0; display:block; border:2px solid #51cf66; background:rgba(16,52,26,.6); color:#eaffea; border-radius:999px; padding:9px 18px; font-weight:900; font-size:13.5px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.35); }
+  #callBtn.on { background:linear-gradient(#51cf66, #1e9e4a); color:#fff; }
   @keyframes fall { to { transform:translateY(105vh) rotate(660deg); } }
   #toast { position:fixed; left:50%; top:30%; transform:translate(-50%,-50%) scale(.85); z-index:60; pointer-events:none;
     background:rgba(15,25,45,.94); border:2.5px solid #ffd93b; color:#fff; font-weight:900; font-size:19px; text-align:center;
@@ -99,6 +101,7 @@
   </div>
   <div id="diceLbl">Tap dadu!</div>
   <div class="lionBox"><img class="lionImg" alt="Singa DEVILCUPS"><div class="lionCap">🦁 DEVILCUPS 🦁</div></div>
+  <button id="callBtn">📞 Mode Telponan WA: MATI</button>
   <div id="panel" style="display:none;"><div id="players"></div></div>
 </div>
 <div id="sparks"></div>
@@ -463,6 +466,25 @@ const GAME_URL = 'https://airinqueen93-svg.github.io/devilcups-privacy/ludo/';
 $('btnWA').addEventListener('click', () => {
   const txt = encodeURIComponent('🎲 Ayo main LUDO DEVILCUPS bareng aku! Tap link ini buat main di HP kamu: ' + GAME_URL + ' — balapan pion, tabrak-tabrakan, yang kalah traktir kopi! 😆🏆');
   window.open('https://wa.me/?text=' + txt, '_blank');
+});
+
+/* ================= MODE TELPONAN WA ================= */
+let callMode = false;
+$('callBtn').addEventListener('click', () => {
+  initAudio();
+  callMode = !callMode;
+  const b = $('callBtn');
+  if(callMode){
+    b.textContent = '📞 Mode Telponan WA: NYALA'; b.classList.add('on');
+    if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+    if(masterGain) masterGain.gain.value = 0;
+    toast('📞 Mode telponan NYALA! Suara game mati — telponan WA tetap jernih. Kirim link game ke temanmu, kalian main sambil ngobrol!', 3400);
+  } else {
+    b.textContent = '📞 Mode Telponan WA: MATI'; b.classList.remove('on');
+    if(masterGain) masterGain.gain.value = sndOn ? .5 : 0;
+    if(sndOn && AC && !musicTimer) startMusic();
+    toast('📞 Mode telponan mati — suara game nyala lagi');
+  }
 });
 
 /* ================= AUTO TEST: 4 bot main sendiri sampai ada pemenang ================= */
