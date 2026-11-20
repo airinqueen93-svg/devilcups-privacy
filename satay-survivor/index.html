@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SATAY SURVIVOR — Pasar Malam Semarang</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="vignette"></div>
+<div id="hurtFlash"></div>
+
+<div id="hud" class="hidden">
+  <div class="hudCol">
+    <div class="pill">🔥 SKOR: <span id="hudScore">0</span> &nbsp;⏱ <span id="hudTime">0:00</span></div>
+    <div class="barLabel">HP</div>
+    <div class="bar"><div id="hpFill"></div></div>
+    <div class="barLabel">LEVEL <span id="hudLevel">1</span> · XP</div>
+    <div class="bar"><div id="xpFill"></div></div>
+    <div class="barLabel">DASH <span id="dashState">SIAP</span></div>
+    <div class="bar dashBar"><div id="dashFill"></div></div>
+  </div>
+  <div class="hudCol hudRight">
+    <div class="pill">🌶️ CABE: <span id="hudChili">0</span><br>👻 DIBUNUH: <span id="hudKills">0</span></div>
+    <div id="comboBox" class="hidden">
+      <div id="comboText">🔥 COMBO ×2</div>
+      <div class="bar comboBar"><div id="comboFill"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="bossBox" class="hidden">
+  <div id="bossName">👹 BOSS PASAR MALAM</div>
+  <div class="bar bossBar"><div id="bossFill"></div></div>
+</div>
+
+<div id="banner" class="hidden"><span id="bannerText"></span></div>
+
+<div id="stick" class="hidden"><div id="stickNub"></div></div>
+<button id="sndBtn" title="Suara seram on/off">🔊</button>
+<button id="dashBtn" class="hidden">💨<br>DASH</button>
+
+<section id="menuScreen" class="overlay">
+  <div class="bigEmoji">🍢👻</div>
+  <h1 class="gameTitle">SATAY<br>SURVIVOR<span>PASAR MALAM • SEMARANG</span></h1>
+  <p class="tagline"><b>Kamu tukang sate terakhir di pasar malam!</b><br>
+  Pocong, kuntilanak &amp; tuyul kelaparan menyerbu lapakmu. Bertahanlah selama
+  mungkin, kumpulkan cabe, naik level, dan jadilah LEGENDA SATE!</p>
+  <div class="featureBox">✨ 3 MUSUH UNIK • 6 UPGRADE • BOSS TIAP 60 DETIK • COMBO PEDAS</div>
+  <button id="playBtn" class="bigBtn">▶ MAIN SEKARANG</button>
+  <p class="controlsHint"><span class="kbd">W A S D</span> / <span class="kbd">↑ ↓ ← →</span> bergerak &nbsp;•&nbsp;
+  <span class="kbd">SPACE</span> dash &nbsp;•&nbsp; tusuk sate menembak otomatis<br>
+  Di HP: seret layar untuk bergerak, tombol DASH di kanan bawah.</p>
+  <p class="credit">Bikin buat Make.fun — Make The Best Game • 100% Offline • Original</p>
+</section>
+
+<section id="levelScreen" class="overlay hidden">
+  <h1 class="subTitle">LEVEL UP! 🎉</h1>
+  <p class="tagline">Pilih 1 kekuatan sate:</p>
+  <div id="upgradeCards"></div>
+  <p class="controlsHint">Klik kartu atau tekan <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span></p>
+</section>
+
+<section id="overScreen" class="overlay hidden">
+  <h1 class="subTitle">GAME OVER 💀</h1>
+  <p id="overText" class="tagline"></p>
+  <div id="finalScore" class="pill bigPill">SKOR AKHIR: 0</div>
+  <button id="retryBtn" class="bigBtn">🔄 MAIN LAGI</button>
+  <p class="controlsHint">atau tekan <span class="kbd">ENTER</span></p>
+</section>
+
+<script src="src/game.js"></script>
+<script src="admob-bridge.js"></script>
+</body>
+</html>
