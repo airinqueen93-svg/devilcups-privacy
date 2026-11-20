@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SALON RUSH — Semarang Glam Salon</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  html,body { height:100%; }
+  body { font-family:'Segoe UI', system-ui, sans-serif; background:#2b1030; color:#3a2430; overflow:hidden; }
+  #app { max-width:480px; margin:0 auto; height:100dvh; display:flex; flex-direction:column;
+    background:linear-gradient(180deg,#ffe3f1 0%,#ffd3e8 30%,#fff0e0 100%); position:relative; }
+  header { display:flex; align-items:center; gap:6px; padding:8px 10px;
+    background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; box-shadow:0 3px 10px rgba(214,51,132,.35); z-index:3; }
+  .logo { font-weight:900; font-size:16px; line-height:1.05; text-shadow:0 2px 0 rgba(0,0,0,.15); }
+  .logo small { display:block; font-size:8.5px; letter-spacing:1.6px; opacity:.92; font-weight:700; }
+  .pill { margin-left:auto; background:#ffffff2e; border:1.5px solid #ffffff70; border-radius:999px;
+    padding:4px 9px; font-weight:800; font-size:12.5px; white-space:nowrap; }
+  .pill + .pill { margin-left:0; }
+  #btnSound { cursor:pointer; }
+  /* wall of fame */
+  #fame { display:flex; align-items:center; gap:5px; padding:5px 10px; background:#fff8; border-bottom:2px dashed #ffb3d1; min-height:34px; }
+  #fame .lbl { font-size:10px; font-weight:800; color:#a4133c; letter-spacing:.4px; }
+  #frames { display:inline-flex; gap:5px; }
+  .frame { display:inline-flex; width:26px; height:26px; border:2.5px solid #d4a017; border-radius:5px; background:#fff7d6;
+    align-items:center; justify-content:center; font-size:15px; box-shadow:0 2px 4px rgba(0,0,0,.15); }
+  .frame.empty { border-color:#e5c7d4; background:#ffffff70; font-size:11px; color:#c9a; }
+  #combo { margin-left:auto; font-size:11.5px; font-weight:900; color:#e8590c; }
+  #combo.boost { color:#fff; background:linear-gradient(90deg,#ff922b,#ff2e88); padding:3px 9px; border-radius:999px;
+    animation:pulse .5s ease-in-out infinite alternate; }
+  @keyframes pulse { from{ transform:scale(1);} to{ transform:scale(1.07);} }
+  /* floor */
+  #floor { flex:1; position:relative; padding:8px 8px 4px; display:flex; flex-direction:column; min-height:0;
+    background:
+      radial-gradient(ellipse 90% 34% at 50% 0%, #ffffff90, transparent),
+      repeating-linear-gradient(0deg, #ffd9a0 0 26px, #ffc98a 26px 28px); }
+  #waitRow { display:flex; gap:6px; justify-content:center; min-height:86px; }
+  .wslot { width:23%; max-width:92px; border:2px dashed #d98cb3; border-radius:14px; background:#ffffff55;
+    display:flex; align-items:center; justify-content:center; position:relative; }
+  .wslot .sofa { font-size:24px; opacity:.5; }
+  #stations { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; margin-top:8px; overflow:hidden; }
+  .station { background:linear-gradient(180deg,#fff,#ffeef6); border:2.5px solid #ffa8cc; border-radius:16px;
+    min-height:118px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    padding:6px 4px 8px; box-shadow:0 4px 10px rgba(164,19,60,.13); }
+  .station.free { border-style:dashed; background:#ffffff70; }
+  .station.free .chairE { opacity:.45; }
+  .station.target { border-color:#51cf66; box-shadow:0 0 0 3px #51cf6688, 0 4px 10px rgba(0,0,0,.12); }
+  .chairE { font-size:30px; line-height:1; }
+  .mirror { position:absolute; top:5px; font-size:15px; opacity:.75; }
+  /* customer */
+  .cust { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding-top:2px; cursor:pointer; z-index:2; }
+  .wslot .cust { padding-top:4px; }
+  .cust .ava { font-size:40px; line-height:1.05; filter:drop-shadow(0 3px 3px rgba(0,0,0,.2)); transition:transform .15s; }
+  .cust.messy .ava { filter:grayscale(.55) drop-shadow(0 3px 3px rgba(0,0,0,.2)); }
+  .cust.glow .ava { filter:drop-shadow(0 0 9px #ffd94d) saturate(1.3); }
+  .cust.sel .ava { transform:scale(1.14); }
+  .cust .bubble { background:#fff; border:2px solid #ff8fc7; border-radius:11px; padding:1px 7px; font-size:14px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15); margin-bottom:1px; position:relative; z-index:3; white-space:nowrap; }
+  .cust .bubble.need { animation:bounce .45s ease-in-out infinite alternate; border-color:#ff922b; }
+  @keyframes bounce { from{ transform:translateY(0);} to{ transform:translateY(-4px);} }
+  .cust .pbar { width:74%; height:7px; background:#00000022; border-radius:99px; overflow:hidden; margin-top:2px; }
+  .cust .pbar i { display:block; height:100%; border-radius:99px; background:#51cf66; transition:width .2s linear; }
+  .cust .mood { font-size:13px; margin-top:1px; }
+  .cust.special { } .cust.special .ava { filter:drop-shadow(0 0 10px gold) saturate(1.35); }
+  .cust.special .bubble { border-color:#d4a017; background:#fff7d6; }
+  .tag { font-size:8.5px; font-weight:900; color:#b8860b; letter-spacing:.4px; }
+  /* toolbar */
+  #toolbar { background:#fff; border-top:3px solid #ffd3e8; padding:7px 8px 4px; z-index:3; }
+  #toolLbl { font-size:10.5px; font-weight:800; color:#a4133c; text-align:center; margin-bottom:5px; min-height:14px; }
+  #tools { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+  .tool { width:52px; padding:5px 0 4px; border:2.5px solid #ffd3e8; background:#fff5f9; border-radius:13px;
+    text-align:center; cursor:pointer; transition:transform .08s; }
+  .tool:active { transform:scale(.92); }
+  .tool .ic { font-size:21px; line-height:1.1; }
+  .tool .nm { font-size:8.5px; font-weight:800; color:#862e5c; }
+  .tool.need { border-color:#ff922b; background:#fff4e0; animation:bounce .4s ease-in-out infinite alternate; }
+  .tool.wrong { animation:shake .3s; border-color:#ff6b6b; }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+  #actions { display:flex; gap:8px; padding:7px 10px 10px; background:#fff; }
+  .btn { flex:1; border:none; border-radius:14px; padding:12px; font-size:15px; font-weight:900; cursor:pointer; }
+  .btn.main { background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; box-shadow:0 4px 12px rgba(255,46,136,.4); }
+  .btn.ghost { background:#ffe3ef; color:#a4133c; flex:0 0 104px; }
+  .btn:active { transform:scale(.97); }
+  /* timing sheet */
+  #timing { position:absolute; left:0; right:0; bottom:0; z-index:8; background:#fffffff2; border-top:3.5px solid #ff922b;
+    padding:12px 16px 18px; box-shadow:0 -8px 24px rgba(0,0,0,.25); text-align:center; }
+  #timing .tt { font-weight:900; font-size:16px; color:#a4133c; margin-bottom:8px; }
+  #tbar { position:relative; height:30px; border-radius:99px; background:#e9ecef; overflow:hidden; border:2px solid #ced4da; }
+  #tgreen { position:absolute; top:0; bottom:0; background:#69db7c; }
+  #tgold { position:absolute; top:0; bottom:0; background:#ffd43b; }
+  #tneedle { position:absolute; top:-2px; bottom:-2px; width:6px; margin-left:-3px; background:#212529; border-radius:3px; box-shadow:0 0 0 2px #fff; }
+  #timing .hint { font-size:11.5px; color:#868e96; margin-top:7px; font-weight:700; }
+  /* banner + toast + money */
+  #banner { position:absolute; top:64px; left:50%; transform:translateX(-50%) scale(.8); z-index:9;
+    background:linear-gradient(90deg,#ff922b,#ff2e88); color:#fff; font-weight:900; font-size:17px;
+    padding:9px 20px; border-radius:999px; box-shadow:0 8px 22px rgba(255,46,136,.5); opacity:0; pointer-events:none;
+    transition:all .25s; white-space:nowrap; }
+  #banner.show { opacity:1; transform:translateX(-50%) scale(1); }
+  #toast { position:absolute; top:110px; left:50%; transform:translateX(-50%); z-index:9; background:#212529e6; color:#fff;
+    font-size:13px; font-weight:700; padding:8px 15px; border-radius:999px; opacity:0; transition:opacity .2s; pointer-events:none; white-space:nowrap; }
+  #toast.show { opacity:1; }
+  .money { position:absolute; z-index:7; font-weight:900; color:#087f23; font-size:16px; pointer-events:none;
+    text-shadow:0 1px 0 #fff, 0 0 6px #b2f2bb; animation:rise 1.15s ease-out forwards; }
+  @keyframes rise { from{ transform:translateY(0); opacity:1;} to{ transform:translateY(-56px); opacity:0;} }
+  /* overlays */
+  .overlay { position:absolute; inset:0; z-index:20; background:#2b1030b8; display:flex; align-items:center; justify-content:center; padding:16px; }
+  .card { background:#fff; border-radius:22px; padding:20px 18px; max-width:400px; width:100%; text-align:center;
+    box-shadow:0 18px 44px rgba(0,0,0,.4); max-height:92dvh; overflow-y:auto; }
+  .card h1 { font-size:25px; color:#d6336c; line-height:1.15; }
+  .card h2 { font-size:19px; color:#d6336c; margin-bottom:6px; }
+  .card p { font-size:13.5px; color:#5c4250; line-height:1.5; margin:7px 0; }
+  .card .big { font-size:15px; }
+  .hidden { display:none !important; }
+  .shopItem { display:flex; align-items:center; gap:9px; background:#fff5f9; border:2px solid #ffd3e8; border-radius:14px;
+    padding:9px 11px; margin:7px 0; text-align:left; }
+  .shopItem .ic { font-size:24px; }
+  .shopItem .inf { flex:1; } .shopItem .inf b { font-size:13.5px; color:#862e5c; }
+  .shopItem .inf span { display:block; font-size:11px; color:#977; }
+  .buy { border:none; background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; font-weight:900; font-size:12px;
+    padding:8px 11px; border-radius:10px; cursor:pointer; white-space:nowrap; }
+  .buy:disabled { background:#ced4da; }
+  .stat { display:flex; justify-content:space-between; background:#fff5f9; border-radius:10px; padding:7px 12px; margin:5px 0; font-size:13.5px; font-weight:700; color:#862e5c; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">💅 SALON RUSH<small>SEMARANG GLAM SALON • DEVILCUPS</small></div>
+    <div class="pill" id="moneyPill">💰 Rp 0</div>
+    <div class="pill" id="clockPill">🕘 09:00</div>
+    <div class="pill" id="btnSound">🔊</div>
+  </header>
+
+  <div id="fame">
+    <span class="lbl">🖼️ DINDING FOTO:</span>
+    <span id="frames"></span>
+    <span id="combo">🔥 Combo: 0</span>
+  </div>
+
+  <div id="floor">
+    <div id="waitRow"></div>
+    <div id="stations"></div>
+  </div>
+
+  <div id="toolbar">
+    <div id="toolLbl">Tap pelanggan nunggu → tap kursi kosong. Lagi dilayani? Tap alat yang diminta!</div>
+    <div id="tools"></div>
+  </div>
+  <div id="actions">
+    <button class="btn ghost" id="btnPause">⏸️ Jeda</button>
+    <button class="btn main" id="btnDay">▶️ Mulai Hari</button>
+  </div>
+
+  <div id="timing" class="hidden">
+    <div class="tt" id="timingTitle">✂️ Potong Rambut</div>
+    <div id="tbar"><div id="tgreen"></div><div id="tgold"></div><div id="tneedle"></div></div>
+    <div class="hint">TAP bar-nya pas jarum di zona HIJAU — tengah EMAS = SEMPURNA! ✨</div>
+  </div>
+
+  <div id="banner"></div>
+  <div id="toast"></div>
+
+  <div class="overlay" id="startOverlay">
+    <div class="card">
+      <h1>💅 SALON RUSH</h1>
+      <p style="font-weight:900;color:#ff7a59">SEMARANG GLAM SALON</p>
+      <p>Kamu jadi <b>bos salon</b>! Pelanggan datang terus dengan pesanan di atas kepalanya. Layani mereka sampai <b>glowing</b> sebelum kesabarannya habis!</p>
+      <p style="text-align:left">
+        1️⃣ Tap pelanggan → tap kursi kosong<br>
+        2️⃣ Tap alat yang diminta (✂️💨🎨…)<br>
+        3️⃣ Stop jarum di zona <b style="color:#2f9e44">HIJAU</b>/<b style="color:#e8a100">EMAS</b> buat hasil SEMPURNA + tip gede<br>
+        4️⃣ 3 pelanggan puas beruntun = <b>BOOST bayaran 2x lipat!</b> 🔥</p>
+      <p class="big">🏠 <b>Level 1: Salon Rumahan</b><br>Target hari ini: <b id="startTarget">Rp 300rb</b></p>
+      <button class="btn main" id="btnStart" style="width:100%">▶️ Buka Salon!</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="endOverlay">
+    <div class="card">
+      <h2 id="endTitle">🌙 Salon Tutup!</h2>
+      <div id="endStats"></div>
+      <p id="endMsg"></p>
+      <div id="shopBox"></div>
+      <button class="btn main" id="btnNextDay" style="width:100%;margin-top:8px">▶️ Hari Berikutnya</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= DATA ================= */
+const TOOLS = {
+  gunting:{ic:'✂️', nm:'Gunting'}, dryer:{ic:'💨', nm:'Dryer'}, cat:{ic:'🎨', nm:'Cat'},
+  cuci:{ic:'🚿', nm:'Cuci'}, facial:{ic:'🧴', nm:'Facial'}, pijat:{ic:'💆', nm:'Pijat'},
+  kuku:{ic:'💅', nm:'Kuku'}, cream:{ic:'🛁', nm:'Cream'}, catok:{ic:'🔥', nm:'Catok'},
+  makeup:{ic:'💄', nm:'Makeup'}, aksesoris:{ic:'👑', nm:'Hiasan'},
+};
+const SVC = {
+  potong:   { nm:'Potong Rambut',    ic:'✂️', steps:['gunting','dryer'],          pay:25 },
+  facial:   { nm:'Facial Glowing',   ic:'🧴', steps:['facial','pijat'],           pay:35 },
+  kuku:     { nm:'Cat Kuku',         ic:'💅', steps:['kuku'],                     pay:20 },
+  cat:      { nm:'Cat Rambut',       ic:'🎨', steps:['cat','cuci','dryer'],       pay:45, lvl:2 },
+  creambath:{ nm:'Creambath',        ic:'🛁', steps:['cream','pijat','dryer'],    pay:50, lvl:2 },
+  smoothing:{ nm:'Smoothing',        ic:'🔥', steps:['catok','cuci','dryer'],     pay:60, lvl:3 },
+  makeup:   { nm:'Makeup Pengantin', ic:'💄', steps:['facial','makeup','aksesoris'], pay:95, lvl:3 },
+};
+const LEVELS = [
+  { nm:'Salon Rumahan', target:300, chairs:2, spawn:5200 },
+  { nm:'Salon di Mall', target:800, chairs:3, spawn:4600 },
+  { nm:'Salon Artis — Semarang Glam', target:2000, chairs:3, spawn:4000 },
+];
+const AVAS = ['👩','👱‍♀️','👵','🧕','👩‍🦰','👩‍🦱','👩‍🦳','💁‍♀️'];
+const SPECIALS = [
+  { ava:'🤩', nm:'ARTIS', tag:'⭐ ARTIS', payMul:5, drain:1.55, w:.07 },
+  { ava:'👰', nm:'PENGANTIN', tag:'💍 PENGANTIN', payMul:4, drain:.85, w:.06, svc:'makeup' },
+  { ava:'👩', nm:'IBU ARISAN', tag:'👛 ARISAN', payMul:2, drain:.8, w:.10 },
+];
+const $ = s => document.querySelector(s);
+const rnd = (a,b) => a + Math.random()*(b-a);
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+/* ================= STATE ================= */
+let S = null;
+function loadSave(){
+  try{ return JSON.parse(localStorage.getItem('salonrush')) ||
+    { bank:0, lvl:1, extraChairs:0, comfy:0, wangi:0, pro:0, wall:[], days:0 }; }
+  catch(e){ return { bank:0, lvl:1, extraChairs:0, comfy:0, wangi:0, pro:0, wall:[], days:0 }; }
+}
+let save = loadSave();
+function persist(){ try{ localStorage.setItem('salonrush', JSON.stringify(save)); }catch(e){} }
+
+let AC = null;
+function blip(f, d){ try{
+  AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.frequency.value = f || 600; o.type = 'sine';
+  g.gain.setValueAtTime(.12, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + (d || .12));
+  o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + (d || .12));
+}catch(e){} }
+function jingle(){ [523,659,784,1046].forEach((f,i)=> setTimeout(()=>blip(f,.16), i*85)); }
+let soundOn = true;
+
+/* ================= GAME STATE ================= */
+let custs = [], stations = [], day = null, selWait = null, timingCtx = null;
+let lastTs = 0;
+
+function chairCount(){ const L = LEVELS[save.lvl-1]; return Math.min(6, L.chairs + save.extraChairs); }
+function servicesForLevel(){ return Object.entries(SVC).filter(([k,v]) => !v.lvl || v.lvl <= save.lvl).map(([k]) => k); }
+function toolsForLevel(){ const t = new Set(); servicesForLevel().forEach(k => SVC[k].steps.forEach(s => t.add(s))); return [...t]; }
+
+function newDay(){
+  const L = LEVELS[save.lvl-1];
+  day = { t:0, len:150, earned:0, served:0, angry:0, streak:0, boostUntil:0,
+          spawnIn:1200, chaos:false, chaosDone:false, over:false, paused:false, started:true };
+  custs = []; selWait = null;
+  stations = Array.from({length: chairCount()}, () => null);
+  renderStations(); renderWait(); renderTools(); updateHUD(); renderFame();
+  $('#btnDay').textContent = '🏁 Akhiri Hari';
+  banner(`🏠 ${L.nm} — Target Rp ${L.target}rb!`);
+}
+function endDay(early){
+  if(!day || day.over) return;
+  day.over = true; day.started = false;
+  stopLoop();
+  const L = LEVELS[save.lvl-1];
+  const met = day.earned >= L.target;
+  const kept = early ? Math.floor(day.earned * .5) : day.earned;
+  save.bank += kept; save.days += 1;
+  let leveled = false;
+  if(met && save.lvl < 3){ save.lvl += 1; leveled = true; }
+  persist();
+  $('#endTitle').textContent = early ? '😤 Salon Kacau! Hari Diakhiri' : met ? '🎉 Target Tercapai!' : '🌙 Salon Tutup';
+  $('#endStats').innerHTML =
+    `<div class="stat"><span>💰 Didapat hari ini</span><span>Rp ${day.earned}rb${early ? ' (disimpan '+kept+')' : ''}</span></div>
+     <div class="stat"><span>😍 Pelanggan puas</span><span>${day.served} orang</span></div>
+     <div class="stat"><span>😤 Kabur marah</span><span>${day.angry} orang</span></div>
+     <div class="stat"><span>🎯 Target level ${save.lvl - (leveled?1:0)}</span><span>Rp ${L.target}rb ${met?'✅':''}</span></div>
+     <div class="stat"><span>🏦 Tabungan salon</span><span>Rp ${save.bank}rb</span></div>`;
+  $('#endMsg').innerHTML = leveled ? `Naik level! Sekarang: <b>${LEVELS[save.lvl-1].nm}</b> — layanan baru kebuka! 🎊`
+    : met ? 'Kerja bagus, Bos! Besok targetnya naik lagi ya.' : `Belum capai target — belanja upgrade dulu biar besok lebih gampang!`;
+  renderShop();
+  $('#endOverlay').classList.remove('hidden');
+  $('#btnDay').textContent = '▶️ Mulai Hari';
+  if(met) jingle();
+}
+function renderShop(){
+  const items = [
+    { id:'chair', ic:'🪑', nm:'Kursi Baru', ds:'Tambah 1 kursi pelanggan', price: save.extraChairs===0?150 : save.extraChairs===1?250 : 400,
+      can: save.extraChairs < 3 && chairCount() < 6, maxed: save.extraChairs>=3 || chairCount()>=6 },
+    { id:'comfy', ic:'🛋️', nm:'Kursi Nyaman', ds:'Kesabaran pelanggan awet +20% / level', price: 120 + save.comfy*110, can: save.comfy<3, maxed: save.comfy>=3, lv: save.comfy },
+    { id:'wangi', ic:'🌸', nm:'Wangi Salon', ds:'Pelanggan datang lebih sabar +15 / level', price: 100 + save.wangi*90, can: save.wangi<3, maxed: save.wangi>=3, lv: save.wangi },
+    { id:'pro',   ic:'⚡', nm:'Alat Pro', ds:'Zona hijau timing lebih lebar / level', price: 130 + save.pro*100, can: save.pro<3, maxed: save.pro>=3, lv: save.pro },
+  ];
+  $('#shopBox').innerHTML = '<p style="font-weight:900;color:#d6336c;margin-top:10px">🛒 BELANJA UPGRADE SALON</p>' + items.map(it =>
+    `<div class="shopItem"><div class="ic">${it.ic}</div>
+      <div class="inf"><b>${it.nm}${it.lv ? ' Lv.'+it.lv : ''}</b><span>${it.ds}</span></div>
+      <button class="buy" data-buy="${it.id}" ${(!it.can || save.bank < it.price) ? 'disabled' : ''}>${it.maxed ? 'MAX' : 'Rp '+it.price+'rb'}</button>
+    </div>`).join('');
+  document.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
+    const it = items.find(x => x.id === b.dataset.buy);
+    if(!it || save.bank < it.price) return;
+    save.bank -= it.price;
+    if(it.id==='chair') save.extraChairs++; if(it.id==='comfy') save.comfy++;
+    if(it.id==='wangi') save.wangi++; if(it.id==='pro') save.pro++;
+    persist(); blip(880,.15); renderShop();
+    $('#endStats').lastElementChild.innerHTML = `<span>🏦 Tabungan salon</span><span>Rp ${save.bank}rb</span>`;
+    toast('✅ ' + it.nm + ' kebeli!');
+  });
+}
+
+/* ================= CUSTOMERS ================= */
+let cid = 0;
+function spawnCust(){
+  if(custs.filter(c => c.state === 'wait').length >= 4) return;
+  const L = LEVELS[save.lvl-1];
+  let sp = null, r = Math.random(), acc = 0;
+  for(const s of SPECIALS){ acc += s.w; if(r < acc){ sp = s; break; } }
+  let svcKey;
+  if(sp && sp.svc && servicesForLevel().includes(sp.svc)) svcKey = sp.svc;
+  else svcKey = pick(servicesForLevel());
+  const c = {
+    id: ++cid, ava: sp ? sp.ava : pick(AVAS), special: sp,
+    svc: svcKey, step: 0, quality: 1, state: 'wait', slot: -1, station: -1,
+    patience: 100 + save.wangi * 15, drain: (sp ? sp.drain : rnd(.95, 1.25)) * (save.lvl === 1 ? .9 : 1),
+  };
+  custs.push(c); renderWait();
+}
+function patienceTick(dt){
+  const comfyMul = 1 - save.comfy * .18;
+  for(const c of [...custs]){
+    const rate = c.drain * comfyMul * (c.state === 'wait' ? 1.35 : 1) * (day.chaos ? 1.15 : 1);
+    c.patience -= rate * dt;
+    if(c.patience <= 0){ leaveAngry(c); }
+  }
+}
+function leaveAngry(c){
+  removeCust(c);
+  day.angry++; day.streak = 0;
+  blip(160, .3); toast(`😤 Pelanggan kabur! (${day.angry}/3)`);
+  updateCombo();
+  if(day.angry >= 3) endDay(true);
+}
+function removeCust(c){
+  if(c.station >= 0) stations[c.station] = null;
+  custs = custs.filter(x => x !== c);
+  if(selWait === c) selWait = null;
+  renderWait(); renderStations();
+}
+function seatCust(c, si){
+  c.state = 'sit'; c.station = si; c.slot = -1; stations[si] = c;
+  selWait = null; blip(700, .08);
+  renderWait(); renderStations(); renderTools();
+}
+function finishCust(c){
+  const svc = SVC[c.svc];
+  const inBoost = day.t < day.boostUntil;
+  let pay = svc.pay * c.quality * (c.special ? c.special.payMul : 1);
+  if(inBoost) pay *= 2;
+  pay = Math.max(5, Math.round(pay));
+  day.earned += pay; day.served++;
+  const puas = c.patience >= 45;
+  if(puas){ day.streak++; if(day.streak >= 3 && day.t >= day.boostUntil){ day.boostUntil = day.t + 12; banner('🔥 GLOW-UP BOOST! Bayaran 2x lipat!'); jingle(); } }
+  else day.streak = 0;
+  if(c.special && puas && !save.wall.includes(c.special.nm)){
+    save.wall.push(c.special.nm); persist(); renderFame();
+    setTimeout(()=> toast(`🖼️ Foto ${c.special.nm} dipajang di dinding salon!`), 700);
+  }
+  moneyPop(c, `+Rp ${pay}rb${inBoost ? ' 🔥' : ''}${c.quality >= 1.25 ? ' ✨' : ''}`);
+  blip(990, .12); setTimeout(()=> blip(1320, .14), 70);
+  c.state = 'done'; renderStations();
+  setTimeout(()=>{ if(custs.includes(c)) removeCust(c); }, 650);
+  updateHUD(); updateCombo();
+}
+
+/* ================= RENDER ================= */
+function custHTML(c, where){
+  const svc = SVC[c.svc];
+  const p = Math.max(0, Math.round(c.patience));
+  const pcol = p > 50 ? '#51cf66' : p > 25 ? '#fab005' : '#ff6b6b';
+  const mood = c.state === 'done' ? '😍' : p > 50 ? '😊' : p > 25 ? '😐' : '😠';
+  let bubble;
+  if(c.state === 'wait') bubble = `${svc.ic} ${svc.nm.split(' ')[0]}`;
+  else if(c.state === 'done') bubble = '✨ GLOWING!';
+  else { const t = TOOLS[svc.steps[c.step]]; bubble = `${t.ic} ${t.nm}!`; }
+  return `<div class="cust ${c.state==='wait'||c.state==='sit' ? 'messy' : 'glow'} ${c.special ? 'special' : ''} ${selWait===c ? 'sel' : ''}" data-cid="${c.id}">
+    <div class="bubble ${c.state==='sit' ? 'need' : ''}">${bubble}</div>
+    ${c.special ? `<div class="tag">${c.special.tag}</div>` : ''}
+    <div class="ava">${c.ava}</div>
+    <div class="pbar"><i style="width:${p}%;background:${pcol}"></i></div>
+    <div class="mood">${mood}</div>
+  </div>`;
+}
+function renderWait(){
+  const wr = $('#waitRow');
+  const waiting = custs.filter(c => c.state === 'wait');
+  wr.innerHTML = Array.from({length: 4}, (_, i) =>
+    `<div class="wslot">${waiting[i] ? custHTML(waiting[i], 'wait') : '<span class="sofa">🛋️</span>'}</div>`).join('');
+  wr.querySelectorAll('.cust').forEach(el => el.onclick = () => {
+    const c = custs.find(x => x.id == el.dataset.cid); if(!c) return;
+    selWait = selWait === c ? null : c; blip(760, .06); renderWait(); renderStations();
+    $('#toolLbl').textContent = selWait ? `Dipilih: ${SVC[c.svc].nm} — sekarang tap kursi yang kosong!` : 'Tap pelanggan nunggu → tap kursi kosong.';
+  });
+}
+function renderStations(){
+  const box = $('#stations');
+  box.innerHTML = stations.map((c, i) =>
+    `<div class="station ${c ? '' : 'free'} ${selWait && !c ? 'target' : ''}" data-st="${i}">
+      <span class="mirror">🪞</span>
+      ${c ? custHTML(c, 'sit') : '<div class="chairE">🪑</div>'}
+    </div>`).join('');
+  box.querySelectorAll('.station').forEach(el => el.onclick = () => {
+    const i = +el.dataset.st;
+    if(selWait && !stations[i]) seatCust(selWait, i);
+  });
+  box.querySelectorAll('.cust').forEach(el => el.onclick = (e) => {
+    e.stopPropagation();
+    const c = custs.find(x => x.id == el.dataset.cid); if(!c || c.state !== 'sit') return;
+    const t = SVC[c.svc].steps[c.step];
+    $('#toolLbl').innerHTML = `${c.ava} minta <b>${TOOLS[t].ic} ${TOOLS[t].nm}</b> — tap alatnya di bawah!`;
+    renderTools(t);
+    blip(660, .06);
+  });
+}
+function renderTools(needTool){
+  const box = $('#tools');
+  box.innerHTML = toolsForLevel().map(t =>
+    `<div class="tool ${needTool === t ? 'need' : ''}" data-tool="${t}">
+       <div class="ic">${TOOLS[t].ic}</div><div class="nm">${TOOLS[t].nm}</div></div>`).join('');
+  box.querySelectorAll('.tool').forEach(el => el.onclick = () => {
+    const t = el.dataset.tool;
+    const c = custs.find(x => x.state === 'sit' && SVC[x.svc].steps[x.step] === t);
+    if(!c){ el.classList.add('wrong'); setTimeout(()=> el.classList.remove('wrong'), 320); blip(170, .15);
+      $('#toolLbl').textContent = 'Nggak ada yang minta alat itu sekarang 😅'; return; }
+    openTiming(c, t);
+  });
+}
+function renderFame(){
+  const all = ['ARTIS', 'PENGANTIN', 'IBU ARISAN'];
+  $('#frames').innerHTML = all.map(n => {
+    const got = save.wall.includes(n);
+    const ava = n === 'ARTIS' ? '🤩' : n === 'PENGANTIN' ? '👰' : '👩';
+    return `<span class="frame ${got ? '' : 'empty'}">${got ? ava : '?'}</span>`;
+  }).join('');
+}
+function updateHUD(){
+  $('#moneyPill').textContent = '💰 Rp ' + (day ? day.earned : 0) + 'rb';
+  if(day){ const mins = 9 * 60 + Math.floor(day.t / day.len * 600);
+    $('#clockPill').textContent = '🕘 ' + String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
+}
+function updateCombo(){
+  const el = $('#combo');
+  if(day && day.t < day.boostUntil){ el.textContent = `🔥 BOOST 2x! ${Math.ceil(day.boostUntil - day.t)}s`; el.classList.add('boost'); }
+  else { el.textContent = `🔥 Combo: ${day ? day.streak : 0}`; el.classList.remove('boost'); }
+}
+function moneyPop(c, txt){
+  const st = document.querySelector(`.station[data-st="${c.station}"]`);
+  if(!st) return;
+  const m = document.createElement('div'); m.className = 'money'; m.textContent = txt;
+  const r = st.getBoundingClientRect(), f = $('#floor').getBoundingClientRect();
+  m.style.left = (r.left - f.left + r.width / 2 - 34) + 'px'; m.style.top = (r.top - f.top + 6) + 'px';
+  $('#floor').appendChild(m); setTimeout(()=> m.remove(), 1200);
+}
+let toastH = null;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastH); toastH = setTimeout(()=> t.classList.remove('show'), 1900); }
+let bannerH = null;
+function banner(msg){ const b = $('#banner'); b.textContent = msg; b.classList.add('show');
+  clearTimeout(bannerH); bannerH = setTimeout(()=> b.classList.remove('show'), 2400); }
+
+/* ================= TIMING MINIGAME ================= */
+let tAnim = null;
+function openTiming(c, tool){
+  if(timingCtx) return;
+  const greenW = .30 + save.pro * .05, goldW = .10;
+  const greenX = rnd(.06, 1 - greenW - .06);
+  timingCtx = { c, tool, greenX, greenW, goldX: greenX + (greenW - goldW) / 2, goldW, start: performance.now(), dur: 1050 };
+  $('#timingTitle').textContent = `${TOOLS[tool].ic} ${SVC[c.svc].nm} — ${c.ava}`;
+  $('#tgreen').style.left = (greenX * 100) + '%'; $('#tgreen').style.width = (greenW * 100) + '%';
+  $('#tgold').style.left = (timingCtx.goldX * 100) + '%'; $('#tgold').style.width = (goldW * 100) + '%';
+  $('#timing').classList.remove('hidden');
+  const step = () => {
+    if(!timingCtx) return;
+    const now = performance.now();
+    const ph = ((now - timingCtx.start) % (timingCtx.dur * 2)) / timingCtx.dur;
+    const pos = ph < 1 ? ph : 2 - ph;
+    $('#tneedle').style.left = (pos * 100) + '%';
+    timingCtx.pos = pos;
+  };
+  step();
+  tAnim = setInterval(step, 16);
+}
+function closeTiming(hit){
+  clearInterval(tAnim);
+  const ctx = timingCtx; timingCtx = null;
+  $('#timing').classList.add('hidden');
+  if(!ctx || !custs.includes(ctx.c)) return;
+  const c = ctx.c, pos = ctx.pos ?? 0;
+  let q, label;
+  if(pos >= ctx.goldX && pos <= ctx.goldX + ctx.goldW){ q = 1.35; label = '✨ SEMPURNA!'; c.patience = Math.min(115, c.patience + 12); }
+  else if(pos >= ctx.greenX && pos <= ctx.greenX + ctx.greenW){ q = 1.0; label = '👍 Bagus!'; }
+  else { q = .65; label = '😬 Kurang pas!'; c.patience = Math.max(1, c.patience - 8); }
+  c.quality *= q;
+  toast(label);
+  blip(q > 1.2 ? 1180 : q >= 1 ? 880 : 240, .14);
+  c.step++;
+  if(c.step >= SVC[c.svc].steps.length) finishCust(c);
+  else { renderStations(); renderTools(); }
+  $('#toolLbl').textContent = 'Tap pelanggan nunggu → tap kursi kosong. Lagi dilayani? Tap alat yang diminta!';
+}
+$('#tbar').onclick = () => closeTiming(true);
+
+/* ================= MAIN LOOP ================= */
+let loopTimer = null;
+function startLoop(){ stopLoop(); lastTs = performance.now(); loopTimer = setInterval(frame, 50); }
+function stopLoop(){ if(loopTimer) clearInterval(loopTimer); loopTimer = null; }
+function frame(){
+  if(!day || day.over){ stopLoop(); return; }
+  const now = performance.now();
+  const dt = Math.min(.06, (now - lastTs) / 1000 || 0); lastTs = now;
+  if(day.paused) return;
+  day.t += dt;
+  // chaos at 17:00 -> t = (17-9)/10 * len = .8*len
+  if(!day.chaosDone && day.t >= day.len * .8){ day.chaos = true; day.chaosDone = true;
+    banner('⏰ JAM SIBUK 17:00! Pelanggan membludak!'); blip(1200, .2);
+    setTimeout(()=> { if(day) day.chaos = false; }, 20000); }
+  day.spawnIn -= dt * 1000;
+  if(day.spawnIn <= 0){ spawnCust();
+    day.spawnIn = LEVELS[save.lvl-1].spawn * rnd(.75, 1.25) * (day.chaos ? .45 : 1); }
+  patienceTick(dt);
+  tickRender(); updateHUD(); updateCombo();
+  if(day.t >= day.len) endDay(false);
+}
+function tickRender(){
+  for(const c of custs){
+    const el = document.querySelector(`.cust[data-cid="${c.id}"]`);
+    if(!el) continue;
+    const p = Math.max(0, Math.round(c.patience));
+    const bar = el.querySelector('.pbar i');
+    if(bar){ bar.style.width = p + '%'; bar.style.background = p > 50 ? '#51cf66' : p > 25 ? '#fab005' : '#ff6b6b'; }
+    const mood = el.querySelector('.mood');
+    if(mood) mood.textContent = c.state === 'done' ? '😍' : p > 50 ? '😊' : p > 25 ? '😐' : '😠';
+  }
+}
+
+/* ================= BUTTONS ================= */
+$('#btnStart').onclick = () => { $('#startOverlay').classList.add('hidden'); blip(700); newDay(); startLoop(); };
+$('#btnDay').onclick = () => {
+  if(day && day.started && !day.over){ endDay(false); }
+  else { $('#endOverlay').classList.add('hidden'); newDay(); startLoop(); }
+};
+$('#btnNextDay').onclick = () => { $('#endOverlay').classList.add('hidden'); newDay(); startLoop(); };
+$('#btnPause').onclick = () => { if(!day) return; day.paused = !day.paused;
+  $('#btnPause').textContent = day.paused ? '▶️ Lanjut' : '⏸️ Jeda'; toast(day.paused ? '⏸️ Jeda dulu' : '▶️ Gas lagi!'); };
+$('#btnSound').onclick = () => { soundOn = !soundOn; $('#btnSound').textContent = soundOn ? '🔊' : '🔇'; if(soundOn) blip(800); };
+const _blip = blip; blip = (f, d) => { if(soundOn) _blip(f, d); };
+
+/* ================= INIT ================= */
+$('#startTarget').textContent = 'Rp ' + LEVELS[save.lvl-1].target + 'rb — ' + LEVELS[save.lvl-1].nm;
+stations = Array.from({length: chairCount()}, () => null);
+renderStations(); renderWait(); renderTools(); renderFame(); updateHUD();
+
+/* ================= TEST HOOKS ================= */
+if(new URLSearchParams(location.search).has('demo')){
+  $('#startOverlay').classList.add('hidden');
+  newDay();
+  spawnCust(); spawnCust(); spawnCust();
+  const w = custs[0]; if(w) seatCust(w, 0);
+  const w2 = custs.find(c => c.state === 'wait'); if(w2) seatCust(w2, 1);
+  day.earned = 135; day.streak = 2; updateHUD(); updateCombo();
+  document.title = 'DEMOOK';
+}
+if(new URLSearchParams(location.search).has('auto')){
+  $('#startOverlay').classList.add('hidden');
+  newDay(); startLoop();
+  const bot = setInterval(() => {
+    const w = custs.find(c => c.state === 'wait');
+    const free = stations.findIndex(s => !s);
+    if(w && free >= 0) seatCust(w, free);
+    const sit = custs.find(c => c.state === 'sit');
+    if(sit && !timingCtx) openTiming(sit, SVC[sit.svc].steps[sit.step]);
+    else if(timingCtx && Math.random() < .6) closeTiming(true);
+    if(!day || day.over) clearInterval(bot);
+  }, 350);
+  setTimeout(() => { document.title = 'AUTODONE served=' + (day ? day.served : -1) + ' earned=' + (day ? day.earned : -1) + ' custs=' + custs.length; }, 25000);
+}
+</script>
+</body>
+</html>
