@@ -756,9 +756,12 @@ function initActors(){
     [28, -5], [32, -11], [27, -12],          // post 3 guards
     [18, -13], [23, -19],                    // D-7 guards
     [-2, 4], [12, 8],                        // patrols
+    [-14, -8, 1], [2, -6, 1], [8, -14, 1], [36, 12, 1],   // roaming patrols
+    [-6, 16], [10, 18], [24, 22], [-20, 24], [-16, -20], [34, -20],  // scattered guards
   ];
-  for(const [ex, ez] of defs){
+  for(const [ex, ez, roam] of defs){
     const e = mkActor(ENEMY_CFG, ex, ez, 'enemy');
+    if(roam) e.roam = true;
     e.hp = 55; e.maxhp = 55; e.yaw = Math.PI;
     e.group.rotation.y = Math.PI;
     enemies.push(e);
@@ -1137,6 +1140,15 @@ function stepEnemy(a, dt, t){
       if(a.strafeT <= 0){ a.strafeT = rnd(1.4, 2.6);
         a.group.position.z += rnd(-1.2, 1.2); } }
     if(a.fireCd <= 0){ a.fireCd = rnd(.95, 1.3); fireAt(a, tgt, null); }
+  } else if(a.roam){
+    a.roamT = (a.roamT || 0) - dt;
+    if(!a.moveTarget && a.roamT <= 0){
+      a.roamT = rnd(2.5, 5);
+      a.moveTarget = new THREE.Vector3(
+        clamp(a.anchor.x + rnd(-6.5, 6.5), -44, 44), 0,
+        clamp(a.anchor.z + rnd(-6.5, 6.5), -29, 29));
+      a.stopD = .4;
+    }
   } else {
     if(Math.hypot(a.anchor.x - a.group.position.x, a.anchor.z - a.group.position.z) > 1.2){
       a.moveTarget = a.anchor; a.stopD = .5;
