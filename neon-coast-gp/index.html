@@ -303,14 +303,14 @@ const sunSprMat = new THREE.SpriteMaterial({ map: canvasTex((x, w, h) => { const
 const sunSpr = new THREE.Sprite(sunSprMat); sunSpr.scale.set(620, 620, 1); scene.add(sunSpr);
 const cloudMat = new THREE.SpriteMaterial({ map: canvasTex((x, w, h) => { const g = x.createRadialGradient(64, 40, 4, 64, 40, 62); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.7, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 128, 80), depthWrite: false, transparent: true });
 const clouds = [];
-for (let i = 0; i < 14; i++){
+for (let i = 0; i < 20; i++){
   const sp = new THREE.Sprite(cloudMat);
-  sp.position.set((Math.random() - .5) * 2400, 190 + Math.random() * 160, Math.random() * 5200 - 200);
+  sp.position.set((Math.random() - .5) * 2400, 190 + Math.random() * 160, Math.random() * 7200 - 200);
   const sc = 200 + Math.random() * 260; sp.scale.set(sc, sc * .42, 1);
   scene.add(sp); clouds.push(sp);
 }
 /* ============ TREK PANTAI ============ */
-const TRACK_LEN = 5000, NSEG = 420, ROAD_W = 15;
+const TRACK_LEN = 7000, NSEG = 580, ROAD_W = 15;
 const CX = [], CY = [], CZ = [], CH = [];
 {
   let x = 0, z = 0, hd = 0;
@@ -1129,7 +1129,7 @@ if (AUTO){
   const signTex = canvasTex((x, w, h) => { const g = x.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 64, 64);
   const bMat = new THREE.MeshLambertMaterial({ map: winTex });
   let signIdx = 0;
-  for (let sPos = 30; sPos < TRACK_LEN; sPos += 46 + Math.random() * 22){
+  for (let sPos = 30; sPos < TRACK_LEN; sPos += 52 + Math.random() * 24){
     for (const sd of [-1, 1]){
       if (Math.random() < .14) continue;
       const c = trackAt(sPos + (Math.random() - .5) * 14);
