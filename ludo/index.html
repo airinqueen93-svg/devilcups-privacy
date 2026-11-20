@@ -582,10 +582,10 @@ initAudio = function(){ _initAudio2(); startMusic(); };
 <style>
   /* ===== V3: GAYA LUDO KING — kayu hangat, koin mahkota, sudut pemain ===== */
   body { background:
-    radial-gradient(ellipse at 50% 26%, rgba(255,220,150,.22), transparent 55%),
-    repeating-linear-gradient(0deg, #a06a3c 0 54px, #96622f 54px 108px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 3px, transparent 3px 108px),
-    #96622f; }
+    radial-gradient(ellipse at 50% 0%, rgba(255,90,90,.18), transparent 55%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,.20) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,.14) 0 14px, transparent 14px 28px),
+    linear-gradient(#6d1420, #4a0d16 70%, #38060f); }
   #plaque { flex:1; text-align:center; font-weight:900; font-size:16.5px; color:#eaffea; letter-spacing:.5px;
     background:linear-gradient(#3f9e74, #2b7a58); border:3px solid #d9b45b; border-radius:22px; padding:8px 10px;
     box-shadow:0 5px 14px rgba(0,0,0,.45), inset 0 2px 4px rgba(255,255,255,.35); text-shadow:0 2px 3px rgba(0,0,0,.4); }
@@ -656,7 +656,7 @@ initAudio = function(){ _initAudio2(); startMusic(); };
 <style>
   /* ===== PODIUM JUARA ===== */
   #podiumScr { display:none; position:fixed; inset:0; z-index:50; flex-direction:column; align-items:center; justify-content:center; padding:18px 14px; text-align:center;
-    background:radial-gradient(ellipse at 50% 18%, rgba(255,220,150,.3), transparent 55%), repeating-linear-gradient(0deg, #a06a3c 0 54px, #96622f 54px 108px); overflow-y:auto; }
+    background:radial-gradient(ellipse at 50% 0%, rgba(255,90,90,.18), transparent 55%), repeating-linear-gradient(45deg, rgba(0,0,0,.2) 0 14px, transparent 14px 28px), repeating-linear-gradient(-45deg, rgba(0,0,0,.14) 0 14px, transparent 14px 28px), linear-gradient(#6d1420, #38060f); overflow-y:auto; }
   #podiumRow { display:flex; align-items:flex-end; gap:8px; margin-top:64px; }
   .pod { display:flex; flex-direction:column; align-items:center; width:96px; }
   .pod .pAv { border-radius:50%; overflow:hidden; border:4px solid #d9b45b; box-shadow:0 7px 16px rgba(0,0,0,.5); background:#fff; position:relative; z-index:2; }
