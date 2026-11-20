@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>BIG BIKE XTREME — Street & Nature</title>
+<title>BIG WOODEN BIKE EXTREME — Street & Nature</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { width:100%; height:100%; overflow:hidden; background:#07080f; font-family:'Segoe UI', system-ui, sans-serif; color:#fff; touch-action:none; user-select:none; }
@@ -102,7 +102,7 @@
 <div id="countTxt">3</div>
 
 <div class="screen" id="titleScreen">
-  <div class="ttl">BIG BIKE<br><b>XTREME</b></div>
+  <div class="ttl" style="font-size:33px;">BIG WOODEN BIKE<br><b>EXTREME</b></div>
   <div class="sub">Balap motor gede: kota <b>ROMA Italia</b> di malam hari 🇮🇹 & alam Bromo–pantai senja. 8 pembalap, nitro membara, polisi ngejar!</div>
   <div class="modes">
     <div class="mode sel" data-mode="street"><h3>🇮🇹 STREET — ROMA</h3><p>Balapan liar malam di kota Italia: gedung batu tua, Colosseum, neon kafe, Vespa & mobil lalu-lalang, polisi patroli.</p></div>
@@ -539,7 +539,7 @@ const gantry = new THREE.Group(); scene.add(gantry);
   box(.3, 5.4, .3, mat(0x2c2f36, .6), -7.4, 2.7, 0, gantry);
   box(.3, 5.4, .3, mat(0x2c2f36, .6), 7.4, 2.7, 0, gantry);
   box(15.4, 1.1, .3, mat(0x14151c, .7), 0, 5.2, 0, gantry);
-  const t = textSprite('🏁 START — BIG BIKE XTREME', '#ffd43b', 13); t.position.set(0, 5.2, -.4); gantry.add(t);
+  const t = textSprite('🏁 START — BIG WOODEN BIKE EXTREME', '#ffd43b', 13); t.position.set(0, 5.2, -.4); gantry.add(t);
 }
 /* ================= RESET & MODE ================= */
 function decorateAll(){ for(const s of segs){ s.landmark = false; decorate(s); } }
