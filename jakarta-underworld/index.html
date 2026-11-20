@@ -115,7 +115,7 @@
       <h1>JAKARTA<br>UNDERWORLD</h1>
       <div class="sub">— GANGSTER SEMARANG —</div>
       <p>Kamu <b style="color:#ffd43b">RAKA</b>, anak jalanan dari Semarang. Di kota hujan ini kamu mulai dari kurir kecil — tagih hutang, balapan liar, rebut wilayah, kabur dari polisi — sampai jadi bos gangster paling ditakuti.</p>
-      <p>🕹️ Joystick kiri buat jalan • 👊 tinju • 🚗 naik mobil/motor<br>⭐ Bikin onar = bintang polisi naik. Bintang 5 = helikopter ikut ngejar!</p>
+      <p>🕹️ Joystick kiri buat jalan • 👊 tinju • 🚗 naik mobil/motor<br>⭐ Bikin onar = bintang polisi naik. Bintang 5 = helikopter ikut ngejar!<br>🏍️ Misi sampingan: nyuri motor & 💰 rampok Toko Emas!</p>
       <button class="bigbtn" id="btnStart">🌧️ MASUK KOTA</button>
     </div>
   </div>
@@ -858,7 +858,8 @@ function newState(){
   return { mode: 'attract', over: false, rp: 250000, karma: 0, stars: 0,
     mission: 0, missionDone: false, hasGun: false, crew: 0, turf: 0,
     driving: null, bustMeter: 0, escapeT: 0, crimeCd: 0, combo: 0, comboT: 0,
-    race: null, slowmo: 0, time: 0, ended: false };
+    race: null, slowmo: 0, time: 0, ended: false,
+    side: { motor: 'idle', rampok: 'idle' }, lootT: 0 };
 }
 G = newState();
 const RAKA_CFG = { uniform: 0x14161c, uniformD: 0x232a38, skin: 0xb98a64, jacket: true, chain: true, shades: true, tattoo: true, hair: 0x0d0b09, hp: 100, speed: 4.4, gun: true };
@@ -900,6 +901,24 @@ const trafficCars = trafficDefs.map(([ty, col, x, z], i) => {
   c.lane = z; return c;
 });
 const trafficLoop = [[62, 4.6], [62, -.6], [-62, -.6], [-62, 4.6]];
+/* misi sampingan: moge curian dekat Hotel Melati */
+const specialMotor = buildMotor();
+specialMotor.group.position.set(-20, 0, -3.2); specialMotor.heading = Math.PI / 2; specialMotor.owned = false;
+const mogeGlow = glowSprite(0xffd43b, 3, .5); mogeGlow.position.set(-20, .5, -3.2); scene.add(mogeGlow);
+const motorOwner = mkActor({ uniform: 0x5a4632, uniformD: 0x2c2f36, skin: 0xd9a37e, hair: 0x0d0b09, hp: 55, speed: 3.4 },
+  -18.6, -1.6, 'gang', 'PEMILIK MOTOR');
+gangsters.push(motorOwner);
+function makePillar(x, z, color){
+  const g = new THREE.Group();
+  const cyl = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 7, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .28, side: THREE.DoubleSide, depthWrite: false }));
+  cyl.position.y = 3.5; g.add(cyl);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.1, .06, 8, 22), new THREE.MeshBasicMaterial({ color }));
+  ring.rotation.x = Math.PI / 2; ring.position.y = .14; g.add(ring);
+  g.position.set(x, 0, z); scene.add(g); return g;
+}
+const motorPillar = makePillar(-20, -3.2, 0x22d3ee);
+const tokoPillar = makePillar(30, 11.5, 0xffd43b);
 let policeCars = [];
 function spawnPolice(){
   const c = buildCar('polisi', 0xe8ecf2);
@@ -1121,6 +1140,15 @@ function enterVehicle(car){
   if(!car.owned && car.type !== 'motor' || (car.type === 'motor' && !car.owned)){
     addStars(1, 'Kamu mengambil kendaraan orang!'); car.owned = false;
   }
+  if(car === specialMotor && G.side.motor === 'idle'){
+    G.side.motor = 'stolen';
+    motorOwner.hostile = true; motorOwner.aggroT = 99;
+    motorPillar.visible = false;
+    chat('PEMILIK MOTOR', 'WOI!! ITU MOTOR GUE!! MALING!!', 2600);
+    radio('Motor sport dicuri dekat Hotel Melati! Antar ke markas — penadah bayar Rp600.000!');
+    setObjective('🏍️ MISI SAMPINGAN: NYURI MOTOR', 'Antar motor curian ini ke MARKAS DEVILCUPS!');
+    sideBeaconAt(markasPos.x, markasPos.z - 4, 0x22d3ee);
+  }
   setEngine(true, 0);
   refreshCtx();
 }
@@ -1150,6 +1178,9 @@ function refreshCtx(){
   if(dMarkas < 4){ btnAct.textContent = '🛒 BELANJA / REKRUT'; btnAct.classList.add('show'); nearCtx = { type: 'shop' }; return; }
   if(G.mission === 0 && dist2(P, joko) < 3){ btnAct.textContent = '💰 TAGIH HUTANG'; btnAct.classList.add('show'); nearCtx = { type: 'tagih' }; return; }
   if(G.mission === 1 && !G.race && dist2(P, rudi) < 3.4){ btnAct.textContent = '🏁 AJAK BALAPAN'; btnAct.classList.add('show'); nearCtx = { type: 'race' }; return; }
+  if(G.side.rampok === 'idle' && Math.hypot(30 - P.group.position.x, 11.5 - P.group.position.z) < 3.2){
+    btnAct.textContent = '💰 RAMPOK TOKO EMAS'; btnAct.classList.add('show'); nearCtx = { type: 'rampok' }; return;
+  }
   let bp = null, bpd = 2.6;
   for(const c of peds){ if(c.state === 'dead') continue; const d = dist2(P, c); if(d < bpd){ bpd = d; bp = c; } }
   if(bp){ btnAct.textContent = '🤝 TOLONG WARGA'; btnAct.classList.add('show'); nearCtx = { type: 'tolong', target: bp }; return; }
@@ -1167,6 +1198,7 @@ holdBtn($('#btnAct'), null, () => {
   if(c.type === 'shop') openShop();
   else if(c.type === 'tagih') mission1Talk();
   else if(c.type === 'race') startRace();
+  else if(c.type === 'rampok') startRampok();
   else if(c.type === 'tolong'){
     const t = c.target;
     if(t.helped) return toast('Warga: "Makasih banyak ya Bang!"');
@@ -1267,6 +1299,79 @@ function escapeCheck(){
     setTimeout(() => { if(!G.ended) $('#choiceOverlay').style.display = 'flex'; }, 1600);
   }
 }
+/* ================= MISI SAMPINGAN ================= */
+let sideBeaconMesh = null;
+function sideBeaconAt(x, z, color){
+  if(sideBeaconMesh) scene.remove(sideBeaconMesh);
+  sideBeaconMesh = makePillar(x, z, color || 0xffd43b);
+}
+function clearSideBeacon(){ if(sideBeaconMesh){ scene.remove(sideBeaconMesh); sideBeaconMesh = null; } }
+function restoreObjective(){
+  if(G.mission === 0) setObjective('💰 MISI 1: TAGIH HUTANG', 'Temui JOKO di Pasar Malam (timur) & tagih hutangnya.');
+  else if(G.mission === 1){
+    if(G.race && G.race.active) return;
+    if(G.missionState === 'race-wait-car') setObjective('🏁 MISI 2: BALAPAN LIAR', 'Naik kendaraan untuk memulai balapan!');
+    else setObjective('🏁 MISI 2: BALAPAN LIAR', 'Temui RUDI di ujung barat jalan utama & ajak balapan.');
+  }
+  else if(G.mission === 2) turfCheck();
+  else if(G.mission === 3){
+    if(G.missionState === 'done') setObjective('👑 SEMUA MISI SELESAI', 'Kamu sekarang bos besar. Tentukan jalan terakhirmu…');
+    else setObjective('🚔 MISI 4: KABUR DARI POLISI!', 'Jauhi polisi sampai bintangmu hilang semua!');
+  }
+}
+function startRampok(){
+  if(G.side.rampok !== 'idle') return;
+  G.side.rampok = 'looting'; G.lootT = 5;
+  tokoPillar.visible = false;
+  G.crimeCd = 0; addStars(2, 'ALARM TOKO EMAS BERBUNYI! Perampokan dilaporkan!');
+  chat('PENJAGA TOKO', 'AMPUN BANG!! Ambil saja uangnya, jangan sakiti kami!!', 3200);
+  for(let i = 0; i < 2; i++){
+    const s = mkActor({ uniform: 0x24425e, uniformD: 0x1a2029, skin: 0xb98a64, cap: 0x16283f, hp: 70, speed: 3.5, gun: i === 1 },
+      26.5 + i * 7, 9.5, 'gang', 'SATPAM');
+    s.hostile = true; s.aggroT = 99; gangsters.push(s);
+  }
+  setObjective('💰 PERAMPOKAN TOKO EMAS', 'Bertahan di dekat toko, mengambil uang… 5 detik');
+  toast('💰 MERAMPOK! Tahan posisimu di dekat toko!');
+}
+function updateSide(dt){
+  // antar motor curian
+  if(G.side.motor === 'stolen' && G.driving === specialMotor &&
+     Math.hypot(markasPos.x - P.group.position.x, markasPos.z - P.group.position.z) < 7){
+    exitVehicle();
+    scene.remove(specialMotor.group);
+    cars.splice(cars.indexOf(specialMotor), 1);
+    G.side.motor = 'done'; clearSideBeacon();
+    addRp(600000, 'Motor curian laku ke penadah! 🏍️');
+    toast('✅ Misi Nyuri Motor selesai!');
+    restoreObjective();
+  }
+  // perampokan: fase mengambil uang
+  if(G.side.rampok === 'looting'){
+    const d = Math.hypot(30 - P.group.position.x, 11.5 - P.group.position.z);
+    if(d < 4.5 && !G.driving){
+      G.lootT -= dt;
+      setObjective('💰 PERAMPOKAN TOKO EMAS', 'Mengambil uang… ' + Math.max(0, G.lootT).toFixed(1) + ' detik — jangan jauh-jauh!');
+      if(G.lootT <= 0){
+        G.side.rampok = 'escape';
+        addRp(3000000, 'Hasil rampokan didapat! 💰');
+        G.crimeCd = 0; addStars(1, 'Polisi memburu perampok Toko Emas!');
+        setObjective('💰 PERAMPOKAN!', 'Bawa hasil rampokan ke MARKAS buat disimpan!');
+        sideBeaconAt(markasPos.x, markasPos.z - 4, 0xffd43b);
+        toast('💰 Uang didapat! Kabur ke MARKAS!');
+      }
+    } else {
+      setObjective('💰 PERAMPOKAN TOKO EMAS', 'Kembali ke depan toko buat lanjut mengambil uang!');
+    }
+  }
+  // perampokan: simpan hasil di markas
+  if(G.side.rampok === 'escape' &&
+     Math.hypot(markasPos.x - P.group.position.x, markasPos.z - P.group.position.z) < 7){
+    G.side.rampok = 'done'; clearSideBeacon();
+    toast('✅ Misi Perampokan selesai! Hasil aman di markas.');
+    radio('Hasil rampokan Toko Emas sudah diamankan anak buah.');
+    restoreObjective();
+  }
+}
 $('#btnGood').onclick = () => endGame(true);
 $('#btnBad').onclick = () => endGame(false);
 function endGame(good){
@@ -1289,6 +1394,14 @@ $('#btnBustedOk').onclick = () => {
   refreshHUD();
 };
 function busted(){
+  if(G.side.rampok === 'escape'){
+    G.rp = Math.max(0, G.rp - 3000000);
+    G.side.rampok = 'idle'; tokoPillar.visible = true; clearSideBeacon();
+    toast('💸 Hasil rampokan DISITA polisi! Misi perampokan bisa diulang.');
+    restoreObjective();
+  } else if(G.side.rampok === 'looting'){
+    G.side.rampok = 'idle'; tokoPillar.visible = true; restoreObjective();
+  }
   const fine = Math.min(G.rp, 300000);
   G.rp -= fine;
   $('#bustedFine').textContent = fmtRp(fine);
@@ -1377,6 +1490,8 @@ function startGame(){
   setObjective('💰 MISI 1: TAGIH HUTANG', 'Temui JOKO di Pasar Malam (timur) & tagih hutangnya.');
   beacon(43, -21, 0xffd43b);
   chat('RAKA', 'Jakarta… kota hujan. Dari sini aku mulai. Utang Joko di pasar — itu langkah pertamaku.', 4200);
+  setTimeout(() => radio('Misi sampingan: 🏍️ motor sport mengkilap parkir dekat HOTEL MELATI — penadah di markas bayar Rp600.000 kalau diantar.'), 5200);
+  setTimeout(() => radio('Misi sampingan: 💰 TOKO EMAS di jalan utama selatan bisa dirampok — tapi alarmnya nyambung ke polisi…'), 11000);
   refreshHUD(); refreshCtx();
 }
 $('#btnStart').addEventListener('click', startGame);
@@ -1540,6 +1655,8 @@ function updateRace(dt){
 }
 function objectiveTarget(){
   if(G.mode !== 'play') return null;
+  if(G.side.motor === 'stolen' || G.side.rampok === 'escape') return [markasPos.x, markasPos.z - 4];
+  if(G.side.rampok === 'looting') return [30, 11.5];
   if(G.race && G.race.active) return raceCps[G.race.cp];
   switch(G.mission){
     case 0: return [43, -21];
@@ -1560,7 +1677,7 @@ function animate(){
   if(G.mode === 'play'){
     updatePlayer(dt);
     updateRace(dt);
-    turfCheck(); escapeCheck();
+    turfCheck(); escapeCheck(); updateSide(dt);
   }
   updateNPCs(dt, t);
   updateTraffic(dt);
@@ -1634,7 +1751,7 @@ animate();
 refreshHUD();
 /* ================= AUTO-TEST ================= */
 if(new URLSearchParams(location.search).has('auto')){
-  window.__JU = { G, P, joko, startGame, punch, mission1Done, cars };
+  window.__JU = { G, P, joko, startGame, punch, mission1Done, cars, specialMotor, startRampok };
   setTimeout(() => {
     startGame();
     P.group.position.set(42.2, 0, -19.4);
@@ -1642,7 +1759,7 @@ if(new URLSearchParams(location.search).has('auto')){
     P.yaw = Math.atan2(joko.group.position.x - P.group.position.x, joko.group.position.z - P.group.position.z);
     punch(P);
     setTimeout(() => {
-      document.title = 'AUTODONE rp=' + G.rp + ' mission=' + G.mission + ' joko=' + joko.state;
+      document.title = 'AUTODONE rp=' + G.rp + ' mission=' + G.mission + ' joko=' + joko.state + ' rampok=' + (typeof startRampok) + ' moge=' + (specialMotor ? 'ok' : 'no');
     }, 700);
   }, 600);
 }
