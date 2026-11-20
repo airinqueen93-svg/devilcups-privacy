@@ -79,6 +79,12 @@
   .stat2 { display:flex; justify-content:space-between; background:#ffffff10; border-radius:9px; padding:6px 11px; margin-top:5px; font-size:13px; }
   .stat2 span:last-child { font-weight:900; color:#ffd43b; }
   #endOverlay, #choiceOverlay, #bustedOverlay { display:none; }
+  #volBtn { top:92px; right:8px; width:44px; height:44px; border-radius:50%; z-index:27;
+    background:rgba(8,10,16,.8); border:1.5px solid #ffffff38; font-size:19px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  #volPanel { top:142px; right:8px; z-index:27; background:rgba(8,10,16,.88); border:1px solid #ffffff2a;
+    border-radius:12px; padding:9px 12px; display:none; align-items:center; gap:8px; font-size:12px; }
+  #volPanel input[type=range] { width:110px; accent-color:#ffd43b; }
   #loadErr { position:absolute; inset:auto 8px 8px 8px; z-index:99; background:#5c1616; color:#ffd7d7; border-radius:10px;
     padding:9px 12px; font-size:12.5px; display:none; }
 </style>
@@ -97,6 +103,8 @@
     <div id="objText">Jelajahi kota. Misi pertama menunggumu.</div>
     <div id="objArrow"><b id="objArrowB">➤</b> <span id="objDist"></span></div>
   </div>
+  <div class="hud" id="volBtn">🔊</div>
+  <div class="hud" id="volPanel"><span>🔈</span><input type="range" id="volSlider" min="0" max="100" value="90"><span>🔊</span></div>
   <div class="hud" id="gangBox">GENG <b>DEVILCUPS</b><br>Anak buah: <span id="crewCnt">0</span>/3<br>Wilayah: <span id="turfCnt">0</span>/1</div>
   <div class="hud" id="radioBox"></div>
   <div class="hud" id="chatBox"><div id="chatWho"></div><div id="chatTxt"></div></div>
@@ -173,12 +181,12 @@ function angDiff(a, b){
   return d;
 }
 /* ================= AUDIO (semua sintetis) ================= */
-let AC = null, masterGain = null, soundOn = true, lastPlay = {};
+let AC = null, masterGain = null, soundOn = true, lastPlay = {}, volLevel = .9;
 function audioInit(){
   if(AC) { if(AC.state === 'suspended') AC.resume(); return; }
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = AC.createGain(); masterGain.gain.value = .5; masterGain.connect(AC.destination);
+    masterGain = AC.createGain(); masterGain.gain.value = volLevel; masterGain.connect(AC.destination);
     startCustomMusic(); startDangdut();
   } catch(e){}
 }
@@ -189,7 +197,7 @@ function noiseBuf(dur){
   for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   return b;
 }
-let rainGain = null, musicGain = null;
+let musicGain = null;
 function startCustomMusic(){
   if(!window.JU_MUSIC_B64) return;
   try {
@@ -198,26 +206,19 @@ function startCustomMusic(){
     for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     AC.decodeAudioData(bytes.buffer.slice(0), buf => {
       const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
-      musicGain = AC.createGain(); musicGain.gain.value = .5;
+      musicGain = AC.createGain(); musicGain.gain.value = .9;
       src.connect(musicGain); musicGain.connect(masterGain); src.start();
     });
   } catch(e){}
 }
-function startRain(){
-  const src = AC.createBufferSource(); src.buffer = noiseBuf(2.5); src.loop = true;
-  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
-  const f2 = AC.createBiquadFilter(); f2.type = 'highpass'; f2.frequency.value = 250;
-  rainGain = AC.createGain(); rainGain.gain.value = .045;
-  src.connect(f); f.connect(f2); f2.connect(rainGain); rainGain.connect(masterGain); src.start();
-}
 function sThunder(){
   if(!AC || !soundOn) return;
-  const t = AC.currentTime, src = AC.createBufferSource(); src.buffer = noiseBuf(2.4);
-  const f = AC.createBiquadFilter(); f.type = 'lowpass';
-  f.frequency.setValueAtTime(320, t); f.frequency.exponentialRampToValueAtTime(50, t + 2.2);
-  const g = AC.createGain(); g.gain.setValueAtTime(.0001, t);
-  g.gain.exponentialRampToValueAtTime(.4, t + .1); g.gain.exponentialRampToValueAtTime(.0001, t + 2.3);
-  src.connect(f); f.connect(g); g.connect(masterGain); src.start(); src.stop(t + 2.4);
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(58, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.8);
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(.22, t + .12); g.gain.exponentialRampToValueAtTime(.0001, t + 1.9);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + 2);
 }
 function sPunch(){
   if(!AC || !soundOn || throttle('punch', 70)) return;
@@ -304,6 +305,16 @@ function setSiren(on, vol){
   if(sirenOsc) sirenGain.gain.setTargetAtTime(on ? vol : 0, AC.currentTime, .2);
   if(!on && sirenOsc){ const o = sirenOsc, l = sirenOsc._lfo; setTimeout(() => { try{ o.stop(); l.stop(); }catch(e){} }, 600); sirenOsc = null; }
 }
+/* kontrol volume */
+$('#volBtn').addEventListener('click', () => {
+  const p = $('#volPanel');
+  p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+});
+$('#volSlider').addEventListener('input', e => {
+  volLevel = e.target.value / 100;
+  if(masterGain) masterGain.gain.value = volLevel;
+  $('#volBtn').textContent = volLevel === 0 ? '🔇' : volLevel < .4 ? '🔈' : volLevel < .75 ? '🔉' : '🔊';
+});
 let engineOsc = null, engineGain = null;
 function setEngine(on, speedRatio){
   if(!AC) return;
