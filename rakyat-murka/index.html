@@ -57,6 +57,13 @@
   .choiceBtn { background:rgba(10,12,20,.92); color:#fff; border:2px solid #ffd43b88; border-radius:13px;
     padding:12px 14px; font-size:14px; font-weight:700; text-align:left; cursor:pointer; }
   .choiceBtn:active { background:#ffd43b; color:#000; }
+  #dpad { left:14px; bottom:16px; z-index:24; display:none; width:158px; height:158px; }
+  .padBtn { position:absolute; width:52px; height:52px; border-radius:50%; border:2px solid #ffffff55;
+    background:rgba(10,12,20,.78); color:#fff; font-size:21px; display:flex; align-items:center;
+    justify-content:center; cursor:pointer; touch-action:none; }
+  .padBtn:active { background:#ffd43b; color:#000; }
+  #padUp { left:53px; top:0; } #padDown { left:53px; bottom:0; }
+  #padLeft { left:0; top:53px; } #padRight { right:0; top:53px; }
   /* tombol volume */
   #volBtn { top:290px; right:8px; width:42px; height:42px; border-radius:50%; z-index:27;
     background:rgba(8,10,16,.8); border:1.5px solid #ffffff38; font-size:18px;
@@ -112,6 +119,12 @@
 <div id="bubble"></div>
 
 <div class="hud" id="joy"><div id="joyKnob"></div></div>
+<div class="hud" id="dpad">
+  <div class="padBtn" id="padUp">▲</div>
+  <div class="padBtn" id="padLeft">◀</div>
+  <div class="padBtn" id="padRight">▶</div>
+  <div class="padBtn" id="padDown">▼</div>
+</div>
 <div class="hud" id="actBtns">
   <button class="actBtn" id="btnMain">👂 DENGARIN</button>
   <button class="actBtn" id="btnSub">🏃 KABUR</button>
@@ -713,7 +726,7 @@ function startMisi3(){
   G.mission = 3;
   setMission('MISI 3 — GILIRAN WAPRES KENA MARAH! 🥵', 'Jadi Gibran: bagi-bagi air minum ke 6 warga yang kehausan demo!');
   toast('🎮 Sekarang kamu jadi WAPRES GIBRAN!');
-  $('#joy').style.display = 'block';
+  $('#dpad').style.display = 'block';
   const bm = $('#btnMain'); bm.style.display = 'block'; bm.textContent = '💧 BAGI AIR';
   gibran.g.position.set(0, 0, 2);
   let picked = 0;
@@ -727,6 +740,20 @@ function startMisi3(){
   G.m3Timer = 80;
 }
 const joyVec = { x: 0, y: 0 };
+/* tombol arah (D-pad) buat ngatur jalan Wapres */
+const padHeld = { x: 0, y: 0 };
+function bindPad(id, dx, dy){
+  const b = $(id);
+  const on = e => { e.preventDefault(); padHeld.x = dx; padHeld.y = dy; joyVec.x = dx; joyVec.y = dy; };
+  const off = e => { if(padHeld.x === dx && padHeld.y === dy){ padHeld.x = 0; padHeld.y = 0; joyVec.x = 0; joyVec.y = 0; } };
+  b.addEventListener('pointerdown', on);
+  b.addEventListener('pointerup', off);
+  b.addEventListener('pointerleave', off);
+  b.addEventListener('pointercancel', off);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+}
+bindPad('#padLeft', -1, 0); bindPad('#padRight', 1, 0);
+bindPad('#padUp', 0, -1); bindPad('#padDown', 0, 1);
 { const joy = $('#joy'), knob = $('#joyKnob'); let joyId = null;
   joy.addEventListener('pointerdown', e => { joyId = e.pointerId; joy.setPointerCapture(joyId); moveJoy(e); });
   joy.addEventListener('pointermove', e => { if(e.pointerId === joyId) moveJoy(e); });
@@ -772,6 +799,7 @@ function startMisi4(){
   G.mission = 4;
   setMission('MISI 4 — LIVE TIKTOK MURKA 📱🔴', 'Netizen nanya langsung! Jawab JUJUR — bohong = DISLIKE naik!');
   $('#joy').style.display = 'none';
+  $('#dpad').style.display = 'none';
   $('#btnMain').style.display = 'none';
   toast('🔴 LIVE makin rame! 1 JUTA mata menonton!');
   G.views += 900000;
@@ -889,7 +917,7 @@ function animate(){
   const excite = G.excite;
   for(const h of crowd){
     const sp = h.cfg.scale || 1;
-    if(h.mode === 'going' || h.mode === 'returning' || h.mode === 'hug' || h.mode === 'leave'){
+    if(h.mode === 'going' || h.mode === 'returning' || h.mode === 'hug' || h.mode === 'leave' || h.mode === 'wander'){
       const target = h.mode === 'returning' ? h.home : { x: h.tx, z: h.tz };
       if(h.mode === 'leave'){ target.x = h.g.position.x; target.z = 26; h.g.rotation.y = 0; }
       const dx = target.x - h.g.position.x, dz = target.z - h.g.position.z;
@@ -903,6 +931,7 @@ function animate(){
         h.legL.rotation.x = h.legR.rotation.x = 0;
         if(h.mode === 'going'){ h.g.rotation.y = Math.PI; doShout(h); }
         else if(h.mode === 'returning') h.mode = null;
+        else if(h.mode === 'wander'){ h.mode = null; h.g.rotation.y = h.home.ry; h.wanderT = rnd(3, 8); }
         else if(h.mode === 'hug'){ h.g.rotation.y = Math.PI; }
       }
       continue;
@@ -913,6 +942,12 @@ function animate(){
       h.mouth.scale.y = 2.6 + Math.sin(t * 30) * 1.6;
       if(h.timer <= 0){ h.mode = 'returning'; h.mouth.scale.y = 1; h.g.position.y = 0; if(G.shouter === h) G.shouter = null; hideBubble(); }
       continue;
+    }
+    /* rakyat demo mondar-mandir */
+    if(G.mission >= 1 && G.mission <= 4 && !h.thirsty){
+      if(h.wanderT === undefined) h.wanderT = rnd(1, 7);
+      h.wanderT -= dt;
+      if(h.wanderT <= 0){ h.mode = 'wander'; h.tx = h.home.x + rnd(-2.8, 2.8); h.tz = h.home.z + rnd(-1.8, 1.8); h.wanderT = rnd(3, 8); }
     }
     /* idle demo: bob + ayunan tangan */
     h.g.position.y = Math.abs(Math.sin(t * (2.4 + excite) + h.phase)) * .05 * excite;
@@ -985,7 +1020,7 @@ function animate(){
     gibran.headG.rotation.y = Math.sin(t * 2.2) * .3;
     G.m3Timer -= dt;
     G.murka = clamp(G.murka + dt * .45, 0, 100);
-    setMission('MISI 3 — GILIRAN WAPRES KENA MARAH! 🥵', 'Bagi air ke warga 💧 — sudah ' + G.served + '/6 • sisa waktu ' + Math.max(0, Math.ceil(G.m3Timer)) + ' dtk');
+    setMission('MISI 3 — GILIRAN WAPRES KENA MARAH! 🥵', 'Tombol ◀ ▶ ▲ ▼ buat jalan • Bagi air 💧: ' + G.served + '/6 • sisa ' + Math.max(0, Math.ceil(G.m3Timer)) + ' dtk');
     if(G.m3Timer <= 0){ toast('⏰ Waktu habis! Warga masih kehausan…'); startMisi4(); }
     if(Math.floor(t) !== Math.floor(t - dt)) updBars();
     camera.position.lerp(new THREE.Vector3(gibran.g.position.x * .55, 6.6, gibran.g.position.z + 11.5), .06);
