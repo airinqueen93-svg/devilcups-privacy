@@ -7,155 +7,254 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
   html,body { height:100%; }
-  body { font-family:'Segoe UI', system-ui, sans-serif; background:#2b1030; color:#3a2430; overflow:hidden; }
-  #app { max-width:480px; margin:0 auto; height:100dvh; display:flex; flex-direction:column;
-    background:linear-gradient(180deg,#ffe3f1 0%,#ffd3e8 30%,#fff0e0 100%); position:relative; }
-  header { display:flex; align-items:center; gap:6px; padding:8px 10px;
-    background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; box-shadow:0 3px 10px rgba(214,51,132,.35); z-index:3; }
-  .logo { font-weight:900; font-size:16px; line-height:1.05; text-shadow:0 2px 0 rgba(0,0,0,.15); }
-  .logo small { display:block; font-size:8.5px; letter-spacing:1.6px; opacity:.92; font-weight:700; }
-  .pill { margin-left:auto; background:#ffffff2e; border:1.5px solid #ffffff70; border-radius:999px;
-    padding:4px 9px; font-weight:800; font-size:12.5px; white-space:nowrap; }
-  .pill + .pill { margin-left:0; }
-  #btnSound { cursor:pointer; }
-  /* wall of fame */
-  #fame { display:flex; align-items:center; gap:5px; padding:5px 10px; background:#fff8; border-bottom:2px dashed #ffb3d1; min-height:34px; }
-  #fame .lbl { font-size:10px; font-weight:800; color:#a4133c; letter-spacing:.4px; }
-  #frames { display:inline-flex; gap:5px; }
-  .frame { display:inline-flex; width:26px; height:26px; border:2.5px solid #d4a017; border-radius:5px; background:#fff7d6;
-    align-items:center; justify-content:center; font-size:15px; box-shadow:0 2px 4px rgba(0,0,0,.15); }
-  .frame.empty { border-color:#e5c7d4; background:#ffffff70; font-size:11px; color:#c9a; }
-  #combo { margin-left:auto; font-size:11.5px; font-weight:900; color:#e8590c; }
-  #combo.boost { color:#fff; background:linear-gradient(90deg,#ff922b,#ff2e88); padding:3px 9px; border-radius:999px;
-    animation:pulse .5s ease-in-out infinite alternate; }
-  @keyframes pulse { from{ transform:scale(1);} to{ transform:scale(1.07);} }
-  /* floor */
-  #floor { flex:1; position:relative; padding:8px 8px 4px; display:flex; flex-direction:column; min-height:0;
+  body { font-family:'Segoe UI', system-ui, sans-serif; background:#2b1030; overflow:hidden; }
+  #app { max-width:480px; margin:0 auto; height:100dvh; display:flex; flex-direction:column; position:relative;
+    background:linear-gradient(180deg,#ffd7ea,#ffeef7); }
+  /* ===== TOP UI ===== */
+  #topbar { display:flex; gap:5px; padding:7px 8px; background:linear-gradient(90deg,#ff2e88,#ff7a59); z-index:30;
+    box-shadow:0 3px 10px rgba(214,51,132,.35); }
+  .stat { flex:1; background:#ffffff30; border:1.5px solid #ffffff75; border-radius:999px; color:#fff;
+    font-weight:900; font-size:12.5px; text-align:center; padding:5px 2px; white-space:nowrap; }
+  .stat small { display:block; font-size:8px; letter-spacing:1px; opacity:.9; }
+  /* ===== SCENE ===== */
+  #scene { flex:1; position:relative; overflow:hidden; min-height:0;
+    background:linear-gradient(180deg,#ffc2dd 0%,#ffd7ea 34%,#ffe9f3 40%,transparent 40%); }
+  #wall { position:absolute; left:0; right:0; top:0; height:40%;
     background:
-      radial-gradient(ellipse 90% 34% at 50% 0%, #ffffff90, transparent),
-      repeating-linear-gradient(0deg, #ffd9a0 0 26px, #ffc98a 26px 28px); }
-  #waitRow { display:flex; gap:6px; justify-content:center; min-height:86px; }
-  .wslot { width:23%; max-width:92px; border:2px dashed #d98cb3; border-radius:14px; background:#ffffff55;
-    display:flex; align-items:center; justify-content:center; position:relative; }
-  .wslot .sofa { font-size:24px; opacity:.5; }
-  #stations { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; margin-top:8px; overflow:hidden; }
-  .station { background:linear-gradient(180deg,#fff,#ffeef6); border:2.5px solid #ffa8cc; border-radius:16px;
-    min-height:118px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-    padding:6px 4px 8px; box-shadow:0 4px 10px rgba(164,19,60,.13); }
-  .station.free { border-style:dashed; background:#ffffff70; }
-  .station.free .chairE { opacity:.45; }
-  .station.target { border-color:#51cf66; box-shadow:0 0 0 3px #51cf6688, 0 4px 10px rgba(0,0,0,.12); }
-  .chairE { font-size:30px; line-height:1; }
-  .mirror { position:absolute; top:5px; font-size:15px; opacity:.75; }
-  /* customer */
-  .cust { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    padding-top:2px; cursor:pointer; z-index:2; }
-  .wslot .cust { padding-top:4px; }
-  .cust .ava { font-size:40px; line-height:1.05; filter:drop-shadow(0 3px 3px rgba(0,0,0,.2)); transition:transform .15s; }
-  .cust.messy .ava { filter:grayscale(.55) drop-shadow(0 3px 3px rgba(0,0,0,.2)); }
-  .cust.glow .ava { filter:drop-shadow(0 0 9px #ffd94d) saturate(1.3); }
-  .cust.sel .ava { transform:scale(1.14); }
-  .cust .bubble { background:#fff; border:2px solid #ff8fc7; border-radius:11px; padding:1px 7px; font-size:14px;
-    box-shadow:0 2px 6px rgba(0,0,0,.15); margin-bottom:1px; position:relative; z-index:3; white-space:nowrap; }
-  .cust .bubble.need { animation:bounce .45s ease-in-out infinite alternate; border-color:#ff922b; }
-  @keyframes bounce { from{ transform:translateY(0);} to{ transform:translateY(-4px);} }
-  .cust .pbar { width:74%; height:7px; background:#00000022; border-radius:99px; overflow:hidden; margin-top:2px; }
-  .cust .pbar i { display:block; height:100%; border-radius:99px; background:#51cf66; transition:width .2s linear; }
-  .cust .mood { font-size:13px; margin-top:1px; }
-  .cust.special { } .cust.special .ava { filter:drop-shadow(0 0 10px gold) saturate(1.35); }
-  .cust.special .bubble { border-color:#d4a017; background:#fff7d6; }
-  .tag { font-size:8.5px; font-weight:900; color:#b8860b; letter-spacing:.4px; }
-  /* toolbar */
-  #toolbar { background:#fff; border-top:3px solid #ffd3e8; padding:7px 8px 4px; z-index:3; }
+      radial-gradient(circle at 12% 30%, #ffffff50 0 26px, transparent 27px),
+      repeating-linear-gradient(90deg, #ffc7df 0 46px, #ffb9d6 46px 48px),
+      linear-gradient(180deg,#ffc2dd,#ffd0e4);
+    border-bottom:6px solid #e88bb4; }
+  #sign { position:absolute; top:7px; left:50%; transform:translateX(-50%); z-index:3;
+    font-weight:900; font-size:19px; letter-spacing:1px; color:#fff; white-space:nowrap;
+    text-shadow:0 0 6px #ff2e88, 0 0 14px #ff2e88, 0 2px 0 #c2185b; }
+  #sign small { display:block; text-align:center; font-size:8px; letter-spacing:3.5px; color:#ffe3f1;
+    text-shadow:0 0 8px #ff2e88; }
+  #mirrors { position:absolute; left:0; right:0; top:19%; height:21%; display:flex; justify-content:space-evenly; z-index:2; }
+  .mirror { width:15%; max-width:64px; height:100%; border-radius:48% 48% 46% 46%;
+    background:linear-gradient(135deg,#dff4ff 20%,#a8dcff 55%,#e8f9ff 85%);
+    border:4px solid #f7b731; box-shadow:0 0 0 2px #e08e0b, 0 0 14px #ffd94d99, inset 0 0 12px #ffffffaa; position:relative; }
+  .mirror::after { content:'💡'; position:absolute; top:-13px; left:50%; transform:translateX(-50%); font-size:11px; }
+  #shelf { position:absolute; right:6px; top:5px; z-index:3; background:#b06a3b; border-radius:6px; padding:4px 5px 3px;
+    box-shadow:0 3px 6px rgba(0,0,0,.25); text-align:center; }
+  #shelf .btls { font-size:13px; letter-spacing:1px; line-height:1; }
+  #shelf .lbl { font-size:7px; color:#ffe9d6; font-weight:800; letter-spacing:.6px; border-top:2px solid #8d5227; margin-top:2px; padding-top:1px; }
+  #door { position:absolute; left:0; top:12%; width:52px; height:29%; z-index:2;
+    background:linear-gradient(180deg,#a5673f,#8d5227); border:3px solid #6f3f1d; border-left:none;
+    border-radius:0 10px 0 0; box-shadow:inset 0 0 0 4px #b57a4a; }
+  #door::before { content:'🚪'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  #door::after { content:'BUKA'; position:absolute; top:6px; left:50%; transform:translateX(-50%);
+    background:#51cf66; color:#fff; font-size:7.5px; font-weight:900; padding:2px 6px; border-radius:99px; letter-spacing:1px; }
+  #floor { position:absolute; left:0; right:0; bottom:0; height:60%;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 76px, #a5673f40 76px 78px),
+      repeating-linear-gradient(0deg, #da9d5f 0 30px, #d1934f 30px 32px);
+    box-shadow:inset 0 14px 18px -10px rgba(90,50,20,.45); }
+  #kasir { position:absolute; right:8px; bottom:9%; z-index:4; text-align:center; }
+  #kasir .desk { font-size:40px; filter:drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
+  #kasir .lbl { font-size:8px; font-weight:900; color:#7c4a21; background:#ffe9d6; border-radius:99px; padding:1px 7px; }
+  #sofa { position:absolute; left:6px; bottom:8%; font-size:38px; z-index:3; filter:drop-shadow(0 4px 4px rgba(0,0,0,.25)); }
+  .plant { position:absolute; font-size:24px; z-index:3; }
+  /* ===== STATIONS ===== */
+  .station { position:absolute; z-index:5; width:74px; text-align:center; transform:translateX(-50%); }
+  .station .chair { font-size:46px; line-height:1; filter:drop-shadow(0 5px 4px rgba(0,0,0,.3)); transition:transform .15s; }
+  .station.free .chair { opacity:.92; }
+  .station.target .chair { transform:scale(1.13); filter:drop-shadow(0 0 12px #51cf66); }
+  .station .sLbl { font-size:8px; font-weight:900; color:#7c4a21; background:#fff8; border-radius:99px; padding:0 6px; }
+  .station .prog { width:56px; height:7px; background:#0003; border-radius:99px; margin:2px auto 0; overflow:hidden; display:none; }
+  .station .prog i { display:block; height:100%; width:0%; background:linear-gradient(90deg,#ff922b,#ffd43b); }
+  .station.working .prog { display:block; }
+  /* ===== CHARACTER ===== */
+  .char { position:absolute; z-index:10; width:56px; height:96px; transform:translate(-50%,-100%);
+    pointer-events:auto; cursor:pointer; will-change:left,top; }
+  .char .inner { position:absolute; inset:0; transform-origin:50% 100%; }
+  .char.idle .inner { animation:idleSway 2.6s ease-in-out infinite; }
+  @keyframes idleSway { 0%,100%{ transform:rotate(-1.1deg);} 50%{ transform:rotate(1.1deg);} }
+  .char.walking .inner { animation:walkBob .34s ease-in-out infinite; }
+  @keyframes walkBob { 0%,100%{ transform:translateY(0) rotate(-1.6deg);} 50%{ transform:translateY(-3.5px) rotate(1.6deg);} }
+  .char.stomp .inner { animation:stompBob .22s ease-in-out infinite; }
+  @keyframes stompBob { 0%,100%{ transform:translateY(0) rotate(-2.6deg);} 50%{ transform:translateY(-5px) rotate(2.6deg);} }
+  .char.jump .inner { animation:happyJump .42s ease-in-out 3; }
+  @keyframes happyJump { 0%,100%{ transform:translateY(0);} 45%{ transform:translateY(-17px) scale(1.04);} }
+  .leg { position:absolute; bottom:0; width:11px; height:26px; border-radius:0 0 6px 6px; transform-origin:50% 0; z-index:1; }
+  .legL { left:15px; } .legR { right:15px; }
+  .char.walking .legL { animation:legSwing .34s ease-in-out infinite; }
+  .char.walking .legR { animation:legSwing .34s ease-in-out infinite reverse; }
+  .char.stomp .legL { animation:legSwing .22s ease-in-out infinite; }
+  .char.stomp .legR { animation:legSwing .22s ease-in-out infinite reverse; }
+  @keyframes legSwing { 0%,100%{ transform:rotate(26deg);} 50%{ transform:rotate(-26deg);} }
+  .char.seated .leg { height:13px; transform:rotate(72deg); }
+  .char.seated .legR { transform:rotate(72deg); }
+  .shoe { position:absolute; bottom:-3px; left:-1px; width:13px; height:6px; border-radius:4px; background:#5b2333; }
+  .body { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:36px; height:38px; z-index:2;
+    border-radius:12px 12px 7px 7px; box-shadow:inset 0 -7px 0 rgba(0,0,0,.13); }
+  .char.seated .body { bottom:15px; }
+  .apron { position:absolute; inset:6px 7px 3px; background:#fff; border-radius:7px 7px 5px 5px; opacity:.92; }
+  .apron::after { content:'💅'; position:absolute; top:3px; left:50%; transform:translateX(-50%); font-size:10px; }
+  .arm { position:absolute; bottom:44px; width:9px; height:27px; border-radius:6px; transform-origin:50% 4px; z-index:1; }
+  .armL { left:5px; transform:rotate(14deg); } .armR { right:5px; transform:rotate(-14deg); }
+  .char.cutting .armR { animation:cutMove .18s ease-in-out infinite; z-index:4; }
+  @keyframes cutMove { 0%,100%{ transform:rotate(-38deg);} 50%{ transform:rotate(-8deg) translateY(2px);} }
+  .char.drying .armR { animation:dryMove .5s ease-in-out infinite; z-index:4; }
+  @keyframes dryMove { 0%,100%{ transform:rotate(-30deg);} 50%{ transform:rotate(-52deg);} }
+  .toolInHand { position:absolute; right:-9px; top:-13px; font-size:16px; display:none; }
+  .char.cutting .toolInHand, .char.drying .toolInHand { display:block; }
+  .head { position:absolute; top:2px; left:50%; transform:translateX(-50%); width:37px; height:37px; border-radius:50%; z-index:3;
+    box-shadow:inset 0 -4px 0 rgba(0,0,0,.06); transition:transform .3s; }
+  .char.bow .head { transform:translateX(-50%) translateY(4px) rotate(9deg); }
+  .hairBack { position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:45px; height:52px; z-index:2;
+    border-radius:48% 48% 44% 44%; transform-origin:50% 6px; }
+  .char.walking .hairBack { animation:hairSway .34s ease-in-out infinite; }
+  @keyframes hairSway { 0%,100%{ transform:translateX(-50%) rotate(-3.4deg);} 50%{ transform:translateX(-50%) rotate(3.4deg);} }
+  .hairTop { position:absolute; top:-5px; left:50%; transform:translateX(-50%); width:41px; height:21px; z-index:4;
+    border-radius:50% 50% 42% 42%; transform-origin:50% 4px; }
+  .char.walking .hairTop { animation:hairSway .34s ease-in-out infinite; }
+  .char.flutter .hairBack { animation:flutterHair .13s linear infinite; }
+  .char.flutter .hairTop { animation:flutterHair .11s linear infinite; }
+  @keyframes flutterHair { 0%{ transform:translateX(-50%) rotate(-5deg) skewX(-4deg);} 50%{ transform:translateX(-52%) rotate(4deg) skewX(5deg);} 100%{ transform:translateX(-48%) rotate(-3deg) skewX(-3deg);} }
+  .hairBun { position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:17px; height:17px; border-radius:50%; z-index:3; }
+  .hijab { position:absolute; top:-4px; left:50%; transform:translateX(-50%); width:44px; height:47px; z-index:3;
+    border-radius:48% 48% 46% 46%; }
+  .hijab::after { content:''; position:absolute; top:5px; left:50%; transform:translateX(-50%); width:33px; height:33px;
+    border-radius:50%; background:inherit; filter:brightness(1.6) saturate(.4); opacity:.0; }
+  .veil { position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:47px; height:56px; z-index:2;
+    background:#ffffffa8; border-radius:48% 48% 40% 40%; border:1.5px dashed #ffd43b; }
+  .crown { position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:15px; z-index:5; }
+  .shades { position:absolute; top:12px; left:50%; transform:translateX(-50%); width:32px; height:9px; z-index:5;
+    background:#212529; border-radius:5px; box-shadow:0 0 0 2px #ffd43b; }
+  .eye { position:absolute; top:16px; width:5.5px; height:7.5px; border-radius:50%; background:#2b2118; z-index:4;
+    animation:blinkEye 3.1s infinite; }
+  .eyeL { left:9px; } .eyeR { right:9px; }
+  @keyframes blinkEye { 0%, 91%, 100% { transform:scaleY(1);} 94.5% { transform:scaleY(.08);} }
+  .brow { position:absolute; top:11px; width:8px; height:2.6px; border-radius:3px; background:#00000055; z-index:4; }
+  .browL { left:7px; transform:rotate(-7deg); } .browR { right:7px; transform:rotate(7deg); }
+  .char.angryFace .browL { transform:rotate(24deg); top:12px; }
+  .char.angryFace .browR { transform:rotate(-24deg); top:12px; }
+  .mouth { position:absolute; top:26px; left:50%; transform:translateX(-50%); width:11px; height:6px; z-index:4;
+    border-bottom:2.6px solid #b3543f; border-radius:50%; }
+  .char.angryFace .mouth { border-bottom:none; border-top:2.6px solid #b3543f; top:29px; }
+  .char.happyFace .mouth { height:8px; border-bottom-width:3.4px; }
+  .blush { position:absolute; top:22px; width:8px; height:5px; border-radius:50%; background:#ff9db155; z-index:4; }
+  .blushL { left:3px; } .blushR { right:3px; }
+  /* customer UI */
+  .bubble { position:absolute; top:-34px; left:50%; transform:translateX(-50%); z-index:20; background:#fff;
+    border:2.2px solid #ff8fc7; border-radius:12px; padding:1px 8px; font-size:16px; white-space:nowrap;
+    box-shadow:0 3px 7px rgba(0,0,0,.2); animation:bubbleBob .5s ease-in-out infinite alternate; }
+  .bubble.need { border-color:#ff922b; background:#fff7e0; }
+  @keyframes bubbleBob { from{ margin-top:0;} to{ margin-top:-3.5px;} }
+  .pbar { position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:46px; height:6.5px; z-index:20;
+    background:#00000038; border-radius:99px; overflow:hidden; }
+  .pbar i { display:block; height:100%; background:#51cf66; border-radius:99px; }
+  .fx { position:absolute; top:-16px; left:50%; z-index:25; pointer-events:none; }
+  .fx span { position:absolute; font-size:15px; animation:floatUp 1.05s ease-out forwards; white-space:nowrap; }
+  @keyframes floatUp { from{ transform:translateY(0) scale(.7); opacity:1;} to{ transform:translateY(-42px) scale(1.15); opacity:0;} }
+  .particle { position:absolute; z-index:8; pointer-events:none; border-radius:2px; }
+  .wind { position:absolute; z-index:9; pointer-events:none; font-size:13px; opacity:.85; }
+  /* ===== BOTTOM UI ===== */
+  #comboBar { display:flex; align-items:center; gap:7px; padding:5px 10px; background:#fff8; z-index:30;
+    border-top:2px dashed #ffb3d1; font-size:11.5px; font-weight:900; color:#e8590c; min-height:31px; }
+  #comboBar.boost { background:linear-gradient(90deg,#ff922b,#ff2e88); color:#fff; }
+  #toolbar { background:#fff; padding:6px 8px 3px; z-index:30; border-top:3px solid #ffd3e8; }
   #toolLbl { font-size:10.5px; font-weight:800; color:#a4133c; text-align:center; margin-bottom:5px; min-height:14px; }
   #tools { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
-  .tool { width:52px; padding:5px 0 4px; border:2.5px solid #ffd3e8; background:#fff5f9; border-radius:13px;
+  .tool { width:56px; padding:6px 0 5px; border:2.5px solid #ffd3e8; background:#fff5f9; border-radius:13px;
     text-align:center; cursor:pointer; transition:transform .08s; }
   .tool:active { transform:scale(.92); }
-  .tool .ic { font-size:21px; line-height:1.1; }
+  .tool .ic { font-size:22px; line-height:1.1; }
   .tool .nm { font-size:8.5px; font-weight:800; color:#862e5c; }
-  .tool.need { border-color:#ff922b; background:#fff4e0; animation:bounce .4s ease-in-out infinite alternate; }
-  .tool.wrong { animation:shake .3s; border-color:#ff6b6b; }
-  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
-  #actions { display:flex; gap:8px; padding:7px 10px 10px; background:#fff; }
-  .btn { flex:1; border:none; border-radius:14px; padding:12px; font-size:15px; font-weight:900; cursor:pointer; }
+  .tool.need { border-color:#ff922b; background:#fff4e0; animation:bubbleBob .35s ease-in-out infinite alternate; }
+  .tool.wrong { animation:shakeX .3s; border-color:#ff6b6b; }
+  @keyframes shakeX { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+  #actions { display:flex; gap:7px; padding:7px 9px 10px; background:#fff; z-index:30; }
+  .btn { flex:1; border:none; border-radius:14px; padding:12px 6px; font-size:14.5px; font-weight:900; cursor:pointer; }
   .btn.main { background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; box-shadow:0 4px 12px rgba(255,46,136,.4); }
-  .btn.ghost { background:#ffe3ef; color:#a4133c; flex:0 0 104px; }
+  .btn.shop { background:#ffe9a8; color:#8a5a00; }
+  .btn.ghost { background:#ffe3ef; color:#a4133c; flex:0 0 92px; }
   .btn:active { transform:scale(.97); }
-  /* timing sheet */
-  #timing { position:absolute; left:0; right:0; bottom:0; z-index:8; background:#fffffff2; border-top:3.5px solid #ff922b;
-    padding:12px 16px 18px; box-shadow:0 -8px 24px rgba(0,0,0,.25); text-align:center; }
+  /* ===== TIMING ===== */
+  #timing { position:absolute; left:0; right:0; bottom:0; z-index:60; background:#fffffff5; border-top:3.5px solid #ff922b;
+    padding:12px 16px 20px; box-shadow:0 -8px 24px rgba(0,0,0,.25); text-align:center; }
   #timing .tt { font-weight:900; font-size:16px; color:#a4133c; margin-bottom:8px; }
-  #tbar { position:relative; height:30px; border-radius:99px; background:#e9ecef; overflow:hidden; border:2px solid #ced4da; }
+  #tbar { position:relative; height:32px; border-radius:99px; background:#e9ecef; overflow:hidden; border:2px solid #ced4da; cursor:pointer; }
   #tgreen { position:absolute; top:0; bottom:0; background:#69db7c; }
   #tgold { position:absolute; top:0; bottom:0; background:#ffd43b; }
   #tneedle { position:absolute; top:-2px; bottom:-2px; width:6px; margin-left:-3px; background:#212529; border-radius:3px; box-shadow:0 0 0 2px #fff; }
   #timing .hint { font-size:11.5px; color:#868e96; margin-top:7px; font-weight:700; }
-  /* banner + toast + money */
-  #banner { position:absolute; top:64px; left:50%; transform:translateX(-50%) scale(.8); z-index:9;
-    background:linear-gradient(90deg,#ff922b,#ff2e88); color:#fff; font-weight:900; font-size:17px;
+  /* ===== FX TEXT ===== */
+  #banner { position:absolute; top:52px; left:50%; transform:translateX(-50%) scale(.8); z-index:70;
+    background:linear-gradient(90deg,#ff922b,#ff2e88); color:#fff; font-weight:900; font-size:16.5px;
     padding:9px 20px; border-radius:999px; box-shadow:0 8px 22px rgba(255,46,136,.5); opacity:0; pointer-events:none;
     transition:all .25s; white-space:nowrap; }
   #banner.show { opacity:1; transform:translateX(-50%) scale(1); }
-  #toast { position:absolute; top:110px; left:50%; transform:translateX(-50%); z-index:9; background:#212529e6; color:#fff;
+  #toast { position:absolute; top:98px; left:50%; transform:translateX(-50%); z-index:70; background:#212529e6; color:#fff;
     font-size:13px; font-weight:700; padding:8px 15px; border-radius:999px; opacity:0; transition:opacity .2s; pointer-events:none; white-space:nowrap; }
   #toast.show { opacity:1; }
-  .money { position:absolute; z-index:7; font-weight:900; color:#087f23; font-size:16px; pointer-events:none;
-    text-shadow:0 1px 0 #fff, 0 0 6px #b2f2bb; animation:rise 1.15s ease-out forwards; }
-  @keyframes rise { from{ transform:translateY(0); opacity:1;} to{ transform:translateY(-56px); opacity:0;} }
-  /* overlays */
-  .overlay { position:absolute; inset:0; z-index:20; background:#2b1030b8; display:flex; align-items:center; justify-content:center; padding:16px; }
-  .card { background:#fff; border-radius:22px; padding:20px 18px; max-width:400px; width:100%; text-align:center;
-    box-shadow:0 18px 44px rgba(0,0,0,.4); max-height:92dvh; overflow-y:auto; }
-  .card h1 { font-size:25px; color:#d6336c; line-height:1.15; }
+  .money { position:absolute; z-index:40; font-weight:900; color:#087f23; font-size:16.5px; pointer-events:none;
+    text-shadow:0 1px 0 #fff, 0 0 7px #b2f2bb; animation:riseUp 1.2s ease-out forwards; }
+  @keyframes riseUp { from{ transform:translateY(0); opacity:1;} to{ transform:translateY(-58px); opacity:0;} }
+  /* ===== OVERLAYS ===== */
+  .overlay { position:absolute; inset:0; z-index:80; background:#2b1030a8; display:flex; align-items:flex-end;
+    justify-content:center; padding:14px; }
+  .overlay.center { align-items:center; }
+  .card { background:#fff; border-radius:22px; padding:18px; max-width:410px; width:100%; text-align:center;
+    box-shadow:0 18px 44px rgba(0,0,0,.4); max-height:88dvh; overflow-y:auto; }
+  .card h1 { font-size:26px; color:#d6336c; line-height:1.12; }
   .card h2 { font-size:19px; color:#d6336c; margin-bottom:6px; }
   .card p { font-size:13.5px; color:#5c4250; line-height:1.5; margin:7px 0; }
-  .card .big { font-size:15px; }
   .hidden { display:none !important; }
+  .stat2 { display:flex; justify-content:space-between; background:#fff5f9; border-radius:10px; padding:7px 12px; margin:5px 0; font-size:13.5px; font-weight:700; color:#862e5c; }
   .shopItem { display:flex; align-items:center; gap:9px; background:#fff5f9; border:2px solid #ffd3e8; border-radius:14px;
     padding:9px 11px; margin:7px 0; text-align:left; }
   .shopItem .ic { font-size:24px; }
   .shopItem .inf { flex:1; } .shopItem .inf b { font-size:13.5px; color:#862e5c; }
   .shopItem .inf span { display:block; font-size:11px; color:#977; }
   .buy { border:none; background:linear-gradient(90deg,#ff2e88,#ff7a59); color:#fff; font-weight:900; font-size:12px;
-    padding:8px 11px; border-radius:10px; cursor:pointer; white-space:nowrap; }
+    padding:9px 11px; border-radius:10px; cursor:pointer; white-space:nowrap; }
   .buy:disabled { background:#ced4da; }
-  .stat { display:flex; justify-content:space-between; background:#fff5f9; border-radius:10px; padding:7px 12px; margin:5px 0; font-size:13.5px; font-weight:700; color:#862e5c; }
 </style>
 </head>
 <body>
 <div id="app">
-  <header>
-    <div class="logo">💅 SALON RUSH<small>SEMARANG GLAM SALON • DEVILCUPS</small></div>
-    <div class="pill" id="moneyPill">💰 Rp 0</div>
-    <div class="pill" id="clockPill">🕘 09:00</div>
-    <div class="pill" id="btnSound">🔊</div>
-  </header>
-
-  <div id="fame">
-    <span class="lbl">🖼️ DINDING FOTO:</span>
-    <span id="frames"></span>
-    <span id="combo">🔥 Combo: 0</span>
+  <div id="topbar">
+    <div class="stat"><small>💰 DUIT</small><span id="uiMoney">0</span></div>
+    <div class="stat"><small>⭐ BINTANG</small><span id="uiStars">5</span></div>
+    <div class="stat"><small>🏆 LEVEL</small><span id="uiLevel">1</span></div>
+    <div class="stat"><small>⏱️ TIMER</small><span id="uiTimer">2:00</span></div>
+    <div class="stat" id="btnSound" style="flex:0 0 44px; cursor:pointer"><small>SUARA</small>🔊</div>
   </div>
 
-  <div id="floor">
-    <div id="waitRow"></div>
+  <div id="scene">
+    <div id="wall"></div>
+    <div id="sign">💅 SALON RUSH<small>SEMARANG GLAM SALON</small></div>
+    <div id="shelf"><div class="btls">💅🧴💄🪮</div><div class="lbl">RAK KOSMETIK</div></div>
+    <div id="mirrors"></div>
+    <div id="door"></div>
+    <div id="floor"></div>
+    <div id="sofa">🛋️</div>
+    <div class="plant" style="right:64px; bottom:6%">🪴</div>
+    <div class="plant" style="left:64px; bottom:5%">🌿</div>
+    <div id="kasir"><div class="desk">🧾</div><div class="lbl">KASIR</div></div>
     <div id="stations"></div>
+    <div id="chars"></div>
+    <div id="fxLayer"></div>
   </div>
+
+  <div id="comboBar">🔥 Combo: 0 — layani 3 pelanggan puas beruntun buat BOOST bayaran 2x!</div>
 
   <div id="toolbar">
-    <div id="toolLbl">Tap pelanggan nunggu → tap kursi kosong. Lagi dilayani? Tap alat yang diminta!</div>
+    <div id="toolLbl">Tap pelanggan yang nunggu → tap kursi kosong buat dudukkan dia.</div>
     <div id="tools"></div>
   </div>
   <div id="actions">
     <button class="btn ghost" id="btnPause">⏸️ Jeda</button>
+    <button class="btn shop" id="btnShop">🛒 Upgrade</button>
     <button class="btn main" id="btnDay">▶️ Mulai Hari</button>
   </div>
 
   <div id="timing" class="hidden">
     <div class="tt" id="timingTitle">✂️ Potong Rambut</div>
     <div id="tbar"><div id="tgreen"></div><div id="tgold"></div><div id="tneedle"></div></div>
-    <div class="hint">TAP bar-nya pas jarum di zona HIJAU — tengah EMAS = SEMPURNA! ✨</div>
+    <div class="hint">TAP bar-nya pas jarum di zona HIJAU — tengah EMAS = SEMPURNA, tip 2x lipat! ✨</div>
   </div>
 
   <div id="banner"></div>
@@ -164,425 +263,586 @@
   <div class="overlay" id="startOverlay">
     <div class="card">
       <h1>💅 SALON RUSH</h1>
-      <p style="font-weight:900;color:#ff7a59">SEMARANG GLAM SALON</p>
-      <p>Kamu jadi <b>bos salon</b>! Pelanggan datang terus dengan pesanan di atas kepalanya. Layani mereka sampai <b>glowing</b> sebelum kesabarannya habis!</p>
+      <p style="font-weight:900;color:#ff7a59">SEMARANG GLAM SALON • DEVILCUPS</p>
+      <p>Kamu bos salonnya! Pelanggan jalan masuk sendiri — dudukkan, layani sesuai pesanan di atas kepalanya, bikin <b>glowing</b> sebelum kesabarannya habis (30 detik)!</p>
       <p style="text-align:left">
-        1️⃣ Tap pelanggan → tap kursi kosong<br>
-        2️⃣ Tap alat yang diminta (✂️💨🎨…)<br>
-        3️⃣ Stop jarum di zona <b style="color:#2f9e44">HIJAU</b>/<b style="color:#e8a100">EMAS</b> buat hasil SEMPURNA + tip gede<br>
-        4️⃣ 3 pelanggan puas beruntun = <b>BOOST bayaran 2x lipat!</b> 🔥</p>
-      <p class="big">🏠 <b>Level 1: Salon Rumahan</b><br>Target hari ini: <b id="startTarget">Rp 300rb</b></p>
+        👆 Tap pelanggan → tap kursi kosong<br>
+        ✂️ Tap alat → stop jarum di <b style="color:#2f9e44">HIJAU</b>/<b style="color:#e8a100">EMAS</b> = tip 2x<br>
+        🔥 3 puas beruntun = <b>BOOST 2x</b> • ⭐ Marah = bintang -1</p>
       <button class="btn main" id="btnStart" style="width:100%">▶️ Buka Salon!</button>
     </div>
   </div>
 
-  <div class="overlay hidden" id="endOverlay">
+  <div class="overlay center hidden" id="endOverlay">
     <div class="card">
       <h2 id="endTitle">🌙 Salon Tutup!</h2>
       <div id="endStats"></div>
       <p id="endMsg"></p>
+      <button class="btn main" id="btnNextDay" style="width:100%">▶️ Hari Berikutnya</button>
+    </div>
+  </div>
+
+  <div class="overlay center hidden" id="shopOverlay">
+    <div class="card">
+      <h2>🛒 Upgrade Salon</h2>
+      <p>💰 Duitmu: <b id="shopMoney">0</b> coin</p>
       <div id="shopBox"></div>
-      <button class="btn main" id="btnNextDay" style="width:100%;margin-top:8px">▶️ Hari Berikutnya</button>
+      <button class="btn main" id="btnCloseShop" style="width:100%;margin-top:6px">✔️ Selesai</button>
     </div>
   </div>
 </div>
 
 <script>
 'use strict';
-/* ================= DATA ================= */
-const TOOLS = {
-  gunting:{ic:'✂️', nm:'Gunting'}, dryer:{ic:'💨', nm:'Dryer'}, cat:{ic:'🎨', nm:'Cat'},
-  cuci:{ic:'🚿', nm:'Cuci'}, facial:{ic:'🧴', nm:'Facial'}, pijat:{ic:'💆', nm:'Pijat'},
-  kuku:{ic:'💅', nm:'Kuku'}, cream:{ic:'🛁', nm:'Cream'}, catok:{ic:'🔥', nm:'Catok'},
-  makeup:{ic:'💄', nm:'Makeup'}, aksesoris:{ic:'👑', nm:'Hiasan'},
-};
-const SVC = {
-  potong:   { nm:'Potong Rambut',    ic:'✂️', steps:['gunting','dryer'],          pay:25 },
-  facial:   { nm:'Facial Glowing',   ic:'🧴', steps:['facial','pijat'],           pay:35 },
-  kuku:     { nm:'Cat Kuku',         ic:'💅', steps:['kuku'],                     pay:20 },
-  cat:      { nm:'Cat Rambut',       ic:'🎨', steps:['cat','cuci','dryer'],       pay:45, lvl:2 },
-  creambath:{ nm:'Creambath',        ic:'🛁', steps:['cream','pijat','dryer'],    pay:50, lvl:2 },
-  smoothing:{ nm:'Smoothing',        ic:'🔥', steps:['catok','cuci','dryer'],     pay:60, lvl:3 },
-  makeup:   { nm:'Makeup Pengantin', ic:'💄', steps:['facial','makeup','aksesoris'], pay:95, lvl:3 },
-};
-const LEVELS = [
-  { nm:'Salon Rumahan', target:300, chairs:2, spawn:5200 },
-  { nm:'Salon di Mall', target:800, chairs:3, spawn:4600 },
-  { nm:'Salon Artis — Semarang Glam', target:2000, chairs:3, spawn:4000 },
-];
-const AVAS = ['👩','👱‍♀️','👵','🧕','👩‍🦰','👩‍🦱','👩‍🦳','💁‍♀️'];
-const SPECIALS = [
-  { ava:'🤩', nm:'ARTIS', tag:'⭐ ARTIS', payMul:5, drain:1.55, w:.07 },
-  { ava:'👰', nm:'PENGANTIN', tag:'💍 PENGANTIN', payMul:4, drain:.85, w:.06, svc:'makeup' },
-  { ava:'👩', nm:'IBU ARISAN', tag:'👛 ARISAN', payMul:2, drain:.8, w:.10 },
-];
+/* ================= HELPERS & DATA ================= */
 const $ = s => document.querySelector(s);
 const rnd = (a,b) => a + Math.random()*(b-a);
-const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const TOOLS = {
+  gunting:{ic:'✂️', nm:'Gunting'}, cat:{ic:'🎨', nm:'Cat'}, kuku:{ic:'💅', nm:'Kuku'},
+  facial:{ic:'🧴', nm:'Facial'}, makeup:{ic:'💄', nm:'Makeup'}, dryer:{ic:'💨', nm:'Dryer'},
+};
+const SVC = {
+  potong:{ nm:'Potong Rambut', ic:'✂️', steps:['gunting','dryer'], pay:60 },
+  cat:   { nm:'Cat Rambut',    ic:'💇', steps:['cat','dryer'],     pay:90 },
+  kuku:  { nm:'Cat Kuku',      ic:'💅', steps:['kuku'],            pay:40 },
+  facial:{ nm:'Facial',        ic:'💆', steps:['facial'],          pay:70 },
+  makeup:{ nm:'Makeup Pengantin', ic:'💍', steps:['facial','makeup'], pay:250, lvl:3 },
+};
+const SKINS = ['#ffe0bd','#f1c27d','#e0ac69','#c68642','#8d5524'];
+const HAIRCOLS = ['#2b2118','#5b3a29','#8d5524','#b5522f','#d9a441','#e8e8e8','#ff7bac'];
+const DRESSES = ['#ff6b9d','#ffa8a8','#74c0fc','#63e6be','#ffd43b','#b197fc','#ff922b','#f783ac','#94d82d'];
+const STYLES = ['long','bun','curly','bob','hijab'];
 
-/* ================= STATE ================= */
-let S = null;
-function loadSave(){
-  try{ return JSON.parse(localStorage.getItem('salonrush')) ||
-    { bank:0, lvl:1, extraChairs:0, comfy:0, wangi:0, pro:0, wall:[], days:0 }; }
-  catch(e){ return { bank:0, lvl:1, extraChairs:0, comfy:0, wangi:0, pro:0, wall:[], days:0 }; }
-}
+/* ================= SAVE ================= */
+function loadSave(){ try{ return Object.assign(
+  { money:0, totalEarned:0, extraChairs:0, fastDryer:false, sound:true },
+  JSON.parse(localStorage.getItem('salonrush3') || '{}')); }catch(e){
+  return { money:0, totalEarned:0, extraChairs:0, fastDryer:false, sound:true }; } }
 let save = loadSave();
-function persist(){ try{ localStorage.setItem('salonrush', JSON.stringify(save)); }catch(e){} }
+function persist(){ try{ localStorage.setItem('salonrush3', JSON.stringify(save)); }catch(e){} }
+function level(){ return Math.min(3, 1 + Math.floor(save.totalEarned / 1000)); }
+function chairTotal(){ return Math.min(5, (level() >= 2 ? 4 : 3) + save.extraChairs); }
+function unlockedSvcs(){ return Object.keys(SVC).filter(k => !SVC[k].lvl || SVC[k].lvl <= level()); }
+function unlockedTools(){ const t = []; unlockedSvcs().forEach(k => SVC[k].steps.forEach(s => { if(!t.includes(s)) t.push(s); }));
+  const order = ['gunting','cat','kuku','facial','makeup','dryer']; return t.sort((a,b) => order.indexOf(a) - order.indexOf(b)); }
 
+/* ================= AUDIO ================= */
 let AC = null;
-function blip(f, d){ try{
+function blip(f, d){ if(!save.sound) return; try{
   AC = AC || new (window.AudioContext || window.webkitAudioContext)();
   const o = AC.createOscillator(), g = AC.createGain();
   o.frequency.value = f || 600; o.type = 'sine';
-  g.gain.setValueAtTime(.12, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + (d || .12));
+  g.gain.setValueAtTime(.11, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + (d || .12));
   o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + (d || .12));
 }catch(e){} }
-function jingle(){ [523,659,784,1046].forEach((f,i)=> setTimeout(()=>blip(f,.16), i*85)); }
-let soundOn = true;
+function jingle(){ [523,659,784,1046].forEach((f,i) => setTimeout(() => blip(f,.16), i*85)); }
 
-/* ================= GAME STATE ================= */
-let custs = [], stations = [], day = null, selWait = null, timingCtx = null;
-let lastTs = 0;
+/* ================= SCENE METRICS ================= */
+let M = { W:390, H:520 };
+function measure(){ const s = $('#scene'); M.W = s.clientWidth; M.H = s.clientHeight; }
+window.addEventListener('resize', () => { measure(); layoutStations(); });
+const CHAIR_TOP = .55;                       // fraction of scene height
+function chairX(i, n){ return M.W * (n === 1 ? .5 : (.14 + (i * .72) / Math.max(1, n - 1))); }
+function chairFeetY(){ return M.H * CHAIR_TOP + 52; }   // seated customer feet (px)
+function waitSpot(i){ return { x: M.W * (.13 + i * .115), y: M.H * .93 }; }
+const DOOR = () => ({ x: 30, y: M.H * .93 });
+const KASIR = () => ({ x: M.W * .865, y: M.H * .93 });
 
-function chairCount(){ const L = LEVELS[save.lvl-1]; return Math.min(6, L.chairs + save.extraChairs); }
-function servicesForLevel(){ return Object.entries(SVC).filter(([k,v]) => !v.lvl || v.lvl <= save.lvl).map(([k]) => k); }
-function toolsForLevel(){ const t = new Set(); servicesForLevel().forEach(k => SVC[k].steps.forEach(s => t.add(s))); return [...t]; }
-
-function newDay(){
-  const L = LEVELS[save.lvl-1];
-  day = { t:0, len:150, earned:0, served:0, angry:0, streak:0, boostUntil:0,
-          spawnIn:1200, chaos:false, chaosDone:false, over:false, paused:false, started:true };
-  custs = []; selWait = null;
-  stations = Array.from({length: chairCount()}, () => null);
-  renderStations(); renderWait(); renderTools(); updateHUD(); renderFame();
-  $('#btnDay').textContent = '🏁 Akhiri Hari';
-  banner(`🏠 ${L.nm} — Target Rp ${L.target}rb!`);
+/* ================= CHARACTER FACTORY ================= */
+let charSeq = 0;
+function makeChar(cfg){
+  const el = document.createElement('div');
+  el.className = 'char';
+  const hair = cfg.hair, skin = cfg.skin, dress = cfg.dress;
+  el.innerHTML = `
+   <div class="inner">
+    ${cfg.style === 'long' || cfg.style === 'curly' ? `<div class="hairBack" style="background:${hair}"></div>` : ''}
+    ${cfg.style === 'hijab' ? `<div class="hijab" style="background:${hair}"></div>` : ''}
+    ${cfg.bride ? '<div class="veil"></div>' : ''}
+    <div class="leg legL" style="background:${skin}"><div class="shoe"></div></div>
+    <div class="leg legR" style="background:${skin}"><div class="shoe"></div></div>
+    <div class="body" style="background:${cfg.bride ? '#ffffff' : dress}">${cfg.apron ? '<div class="apron"></div>' : ''}</div>
+    <div class="arm armL" style="background:${skin}"></div>
+    <div class="arm armR" style="background:${skin}"><span class="toolInHand"></span></div>
+    <div class="head" style="background:${skin}">
+      ${cfg.style === 'bun' ? `<div class="hairBun" style="background:${hair}"></div>` : ''}
+      ${cfg.style !== 'hijab' ? `<div class="hairTop" style="background:${hair}; ${cfg.style === 'bob' ? 'height:26px;border-radius:48% 48% 40% 40%;' : ''} ${cfg.style === 'curly' ? 'height:24px;box-shadow:0 5px 0 -1px ' + hair + ';' : ''}"></div>` : ''}
+      ${cfg.bride ? '<div class="crown">👑</div>' : ''}
+      ${cfg.shades ? '<div class="shades"></div>' : ''}
+      <div class="brow browL"></div><div class="brow browR"></div>
+      <div class="eye eyeL"></div><div class="eye eyeR"></div>
+      <div class="blush blushL"></div><div class="blush blushR"></div>
+      <div class="mouth"></div>
+    </div>
+    <div class="bubble hidden"></div>
+    <div class="pbar hidden"><i></i></div>
+    <div class="fx"></div>
+   </div>`;
+  el.querySelectorAll('.eye').forEach(e => e.style.animationDelay = (-rnd(0, 3)).toFixed(2) + 's');
+  $('#chars').appendChild(el);
+  return el;
 }
-function endDay(early){
-  if(!day || day.over) return;
-  day.over = true; day.started = false;
-  stopLoop();
-  const L = LEVELS[save.lvl-1];
-  const met = day.earned >= L.target;
-  const kept = early ? Math.floor(day.earned * .5) : day.earned;
-  save.bank += kept; save.days += 1;
-  let leveled = false;
-  if(met && save.lvl < 3){ save.lvl += 1; leveled = true; }
-  persist();
-  $('#endTitle').textContent = early ? '😤 Salon Kacau! Hari Diakhiri' : met ? '🎉 Target Tercapai!' : '🌙 Salon Tutup';
-  $('#endStats').innerHTML =
-    `<div class="stat"><span>💰 Didapat hari ini</span><span>Rp ${day.earned}rb${early ? ' (disimpan '+kept+')' : ''}</span></div>
-     <div class="stat"><span>😍 Pelanggan puas</span><span>${day.served} orang</span></div>
-     <div class="stat"><span>😤 Kabur marah</span><span>${day.angry} orang</span></div>
-     <div class="stat"><span>🎯 Target level ${save.lvl - (leveled?1:0)}</span><span>Rp ${L.target}rb ${met?'✅':''}</span></div>
-     <div class="stat"><span>🏦 Tabungan salon</span><span>Rp ${save.bank}rb</span></div>`;
-  $('#endMsg').innerHTML = leveled ? `Naik level! Sekarang: <b>${LEVELS[save.lvl-1].nm}</b> — layanan baru kebuka! 🎊`
-    : met ? 'Kerja bagus, Bos! Besok targetnya naik lagi ya.' : `Belum capai target — belanja upgrade dulu biar besok lebih gampang!`;
-  renderShop();
-  $('#endOverlay').classList.remove('hidden');
-  $('#btnDay').textContent = '▶️ Mulai Hari';
-  if(met) jingle();
-}
-function renderShop(){
-  const items = [
-    { id:'chair', ic:'🪑', nm:'Kursi Baru', ds:'Tambah 1 kursi pelanggan', price: save.extraChairs===0?150 : save.extraChairs===1?250 : 400,
-      can: save.extraChairs < 3 && chairCount() < 6, maxed: save.extraChairs>=3 || chairCount()>=6 },
-    { id:'comfy', ic:'🛋️', nm:'Kursi Nyaman', ds:'Kesabaran pelanggan awet +20% / level', price: 120 + save.comfy*110, can: save.comfy<3, maxed: save.comfy>=3, lv: save.comfy },
-    { id:'wangi', ic:'🌸', nm:'Wangi Salon', ds:'Pelanggan datang lebih sabar +15 / level', price: 100 + save.wangi*90, can: save.wangi<3, maxed: save.wangi>=3, lv: save.wangi },
-    { id:'pro',   ic:'⚡', nm:'Alat Pro', ds:'Zona hijau timing lebih lebar / level', price: 130 + save.pro*100, can: save.pro<3, maxed: save.pro>=3, lv: save.pro },
-  ];
-  $('#shopBox').innerHTML = '<p style="font-weight:900;color:#d6336c;margin-top:10px">🛒 BELANJA UPGRADE SALON</p>' + items.map(it =>
-    `<div class="shopItem"><div class="ic">${it.ic}</div>
-      <div class="inf"><b>${it.nm}${it.lv ? ' Lv.'+it.lv : ''}</b><span>${it.ds}</span></div>
-      <button class="buy" data-buy="${it.id}" ${(!it.can || save.bank < it.price) ? 'disabled' : ''}>${it.maxed ? 'MAX' : 'Rp '+it.price+'rb'}</button>
-    </div>`).join('');
-  document.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
-    const it = items.find(x => x.id === b.dataset.buy);
-    if(!it || save.bank < it.price) return;
-    save.bank -= it.price;
-    if(it.id==='chair') save.extraChairs++; if(it.id==='comfy') save.comfy++;
-    if(it.id==='wangi') save.wangi++; if(it.id==='pro') save.pro++;
-    persist(); blip(880,.15); renderShop();
-    $('#endStats').lastElementChild.innerHTML = `<span>🏦 Tabungan salon</span><span>Rp ${save.bank}rb</span>`;
-    toast('✅ ' + it.nm + ' kebeli!');
-  });
+function randomCustCfg(special){
+  if(special === 'artis') return { skin: pick(SKINS), hair: pick(HAIRCOLS), dress: '#ffd43b', style: pick(['long','curly','bob']), shades: true };
+  if(special === 'pengantin') return { skin: pick(SKINS), hair: '#2b2118', dress: '#ffffff', style: 'bun', bride: true };
+  return { skin: pick(SKINS), hair: pick(HAIRCOLS), dress: pick(DRESSES), style: pick(STYLES) };
 }
 
-/* ================= CUSTOMERS ================= */
-let cid = 0;
-function spawnCust(){
-  if(custs.filter(c => c.state === 'wait').length >= 4) return;
-  const L = LEVELS[save.lvl-1];
-  let sp = null, r = Math.random(), acc = 0;
-  for(const s of SPECIALS){ acc += s.w; if(r < acc){ sp = s; break; } }
-  let svcKey;
-  if(sp && sp.svc && servicesForLevel().includes(sp.svc)) svcKey = sp.svc;
-  else svcKey = pick(servicesForLevel());
-  const c = {
-    id: ++cid, ava: sp ? sp.ava : pick(AVAS), special: sp,
-    svc: svcKey, step: 0, quality: 1, state: 'wait', slot: -1, station: -1,
-    patience: 100 + save.wangi * 15, drain: (sp ? sp.drain : rnd(.95, 1.25)) * (save.lvl === 1 ? .9 : 1),
-  };
-  custs.push(c); renderWait();
+/* ================= ENTITIES ================= */
+let custs = [], particles = [], stylist = null, stations = [];
+let G = null, selWait = null, timingCtx = null, demoMode = true;
+
+function buildStylist(){
+  const el = makeChar({ skin:'#f1c27d', hair:'#3a2b20', dress:'#ff2e88', style:'bun', apron:true });
+  stylist = { el, x: KASIR().x, y: KASIR().y, tx: KASIR().x, ty: KASIR().y,
+    state:'idle', cust:null, tool:null, workT:0, workDur:0, quality:1 };
+  place(stylist);
 }
-function patienceTick(dt){
-  const comfyMul = 1 - save.comfy * .18;
-  for(const c of [...custs]){
-    const rate = c.drain * comfyMul * (c.state === 'wait' ? 1.35 : 1) * (day.chaos ? 1.15 : 1);
-    c.patience -= rate * dt;
-    if(c.patience <= 0){ leaveAngry(c); }
+function place(o){ o.el.style.left = o.x + 'px'; o.el.style.top = o.y + 'px'; }
+function setWalking(o, on, stomp){
+  o.el.classList.toggle('walking', !!on && !stomp);
+  o.el.classList.toggle('stomp', !!stomp);
+}
+function moveToward(o, tx, ty, speed, dt){
+  const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy);
+  if(d < 3){ o.x = tx; o.y = ty; return true; }
+  const s = Math.min(d, speed * dt);
+  o.x += dx / d * s; o.y += dy / d * s; return false;
+}
+function fxBurst(c, emoji, n){
+  const fx = c.el.querySelector('.fx');
+  for(let i = 0; i < (n || 3); i++){
+    const s = document.createElement('span'); s.textContent = emoji;
+    s.style.left = rnd(-16, 10) + 'px'; s.style.animationDelay = (i * .13) + 's';
+    fx.appendChild(s); setTimeout(() => s.remove(), 1500);
   }
 }
-function leaveAngry(c){
-  removeCust(c);
-  day.angry++; day.streak = 0;
-  blip(160, .3); toast(`😤 Pelanggan kabur! (${day.angry}/3)`);
-  updateCombo();
-  if(day.angry >= 3) endDay(true);
+function spawnParticle(x, y, opt){
+  const el = document.createElement('div');
+  el.className = opt.cls || 'particle';
+  el.style.cssText = `left:${x}px;top:${y}px;width:${opt.w || 5}px;height:${opt.h || 3}px;background:${opt.color || '#5b3a29'};opacity:.95`;
+  if(opt.emoji){ el.textContent = opt.emoji; el.style.background = 'none'; el.style.fontSize = '12px'; el.style.width = 'auto'; el.style.height = 'auto'; }
+  $('#fxLayer').appendChild(el);
+  particles.push({ el, x, y, vx: opt.vx || 0, vy: opt.vy || 0, g: opt.g || 0, life: opt.life || 1 });
 }
-function removeCust(c){
-  if(c.station >= 0) stations[c.station] = null;
-  custs = custs.filter(x => x !== c);
-  if(selWait === c) selWait = null;
-  renderWait(); renderStations();
+function moneyPop(x, y, txt){
+  const m = document.createElement('div'); m.className = 'money'; m.textContent = txt;
+  m.style.left = (x - 30) + 'px'; m.style.top = (y - 110) + 'px';
+  $('#scene').appendChild(m); setTimeout(() => m.remove(), 1250);
+}
+let toastH = null, bannerH = null;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastH); toastH = setTimeout(() => t.classList.remove('show'), 1900); }
+function banner(msg){ const b = $('#banner'); b.textContent = msg; b.classList.add('show');
+  clearTimeout(bannerH); bannerH = setTimeout(() => b.classList.remove('show'), 2500); }
+
+/* ================= STATIONS ================= */
+function layoutStations(){
+  const n = chairTotal();
+  const box = $('#stations'); box.innerHTML = '';
+  $('#mirrors').innerHTML = Array.from({length: n}, () => '<div class="mirror"></div>').join('');
+  stations = [];
+  for(let i = 0; i < n; i++){
+    const d = document.createElement('div');
+    d.className = 'station free'; d.dataset.st = i;
+    d.style.left = chairX(i, n) + 'px'; d.style.top = (M.H * CHAIR_TOP) + 'px';
+    d.innerHTML = `<div class="chair">🪑</div><div class="sLbl">KURSI ${i + 1}</div><div class="prog"><i></i></div>`;
+    d.onclick = () => { if(selWait) seatCust(selWait, i); };
+    box.appendChild(d);
+    stations.push({ el: d, cust: null });
+  }
+  // re-seat references after rebuild
+  custs.forEach(c => { if(c.station >= 0 && stations[c.station]) stations[c.station].cust = c; });
+}
+function stationEl(i){ return stations[i] ? stations[i].el : null; }
+
+/* ================= CUSTOMER FLOW ================= */
+function spawnCust(demo){
+  const waiting = custs.filter(c => c.state === 'wait' || c.state === 'enter').length;
+  if(waiting >= 4) return null;
+  let special = null;
+  if(!demo){
+    const r = Math.random();
+    if(level() >= 3 && r < .10) special = 'pengantin';
+    else if(level() >= 2 && r < .22) special = 'artis';
+  }
+  let svcKey;
+  if(special === 'pengantin') svcKey = 'makeup';
+  else svcKey = pick(unlockedSvcs().filter(k => k !== 'makeup'));
+  const cfg = randomCustCfg(special);
+  const el = makeChar(cfg);
+  const c = { id: ++charSeq, el, cfg, special, svc: svcKey, step: 0, hadPerfect: false,
+    state: 'enter', station: -1, waitIdx: waiting, x: -34, y: DOOR().y,
+    patience: special === 'artis' ? 24 : 30, maxPatience: special === 'artis' ? 24 : 30, demo: !!demo };
+  el.onclick = () => onCustTap(c);
+  custs.push(c); place(c); refreshCustUI(c);
+  return c;
+}
+function refreshCustUI(c){
+  const b = c.el.querySelector('.bubble'), pb = c.el.querySelector('.pbar');
+  const svc = SVC[c.svc];
+  if(c.state === 'wait' || c.state === 'enter'){ b.textContent = svc.ic; b.classList.remove('hidden', 'need'); pb.classList.remove('hidden'); }
+  else if(c.state === 'seated'){ const t = TOOLS[svc.steps[c.step]]; b.textContent = t.ic; b.classList.remove('hidden'); b.classList.add('need'); pb.classList.remove('hidden'); }
+  else if(c.state === 'done'){ b.textContent = '✨'; b.classList.remove('hidden', 'need'); pb.classList.add('hidden'); }
+  else { b.classList.add('hidden'); pb.classList.toggle('hidden', !(c.state === 'wait' || c.state === 'seated')); }
+  c.el.querySelector('.pbar i').style.width = clamp(c.patience / c.maxPatience * 100, 0, 100) + '%';
+  c.el.querySelector('.pbar i').style.background = c.patience > 13 ? '#51cf66' : c.patience > 6 ? '#fab005' : '#ff6b6b';
+}
+function onCustTap(c){
+  if(!G || G.over || demoMode) return;
+  if(c.state === 'wait'){ selWait = selWait === c ? null : c;
+    custs.forEach(x => x.el.style.filter = '');
+    if(selWait){ c.el.style.filter = 'drop-shadow(0 0 9px #51cf66)'; blip(740, .06);
+      $('#toolLbl').textContent = 'Sekarang tap KURSI yang kosong buat dudukkan dia!'; }
+    stations.forEach((s, i) => s.el.classList.toggle('target', !!selWait && !s.cust));
+  }
 }
 function seatCust(c, si){
-  c.state = 'sit'; c.station = si; c.slot = -1; stations[si] = c;
-  selWait = null; blip(700, .08);
-  renderWait(); renderStations(); renderTools();
+  if(!stations[si] || stations[si].cust) return;
+  stations[si].cust = c; c.station = si; c.state = 'toChair'; selWait = null;
+  c.el.style.filter = '';
+  stations.forEach(s => s.el.classList.remove('target'));
+  blip(680, .07); renderTools();
+}
+function releaseStation(c){ if(c.station >= 0 && stations[c.station]) stations[c.station].cust = null; c.station = -1; }
+function removeCust(c){
+  releaseStation(c); c.el.remove();
+  custs = custs.filter(x => x !== c);
+  if(selWait === c) selWait = null;
+}
+function startLeave(c, angry){
+  c.state = angry ? 'leaveAngry' : 'leave';
+  c.el.querySelector('.bubble').classList.add('hidden');
+  c.el.querySelector('.pbar').classList.add('hidden');
+  releaseStation(c);
+}
+function angryLeave(c){
+  if(c.demo){ removeCust(c); return; }
+  c.state = 'angryPause'; c.pauseT = .85;
+  c.el.classList.add('angryFace');
+  fxBurst(c, '💨', 3); blip(150, .3);
+  G.streak = 0; updateCombo();
+  if(G && !G.over){
+    G.angry++; G.stars--; updateHUD();
+    toast(`😤 Pelanggan marah dan pergi! Bintang ${G.stars}/5`);
+    if(G.stars <= 0){ endDay(true); return; }
+  }
+  refreshCustUI(c);
 }
 function finishCust(c){
   const svc = SVC[c.svc];
-  const inBoost = day.t < day.boostUntil;
-  let pay = svc.pay * c.quality * (c.special ? c.special.payMul : 1);
-  if(inBoost) pay *= 2;
-  pay = Math.max(5, Math.round(pay));
-  day.earned += pay; day.served++;
-  const puas = c.patience >= 45;
-  if(puas){ day.streak++; if(day.streak >= 3 && day.t >= day.boostUntil){ day.boostUntil = day.t + 12; banner('🔥 GLOW-UP BOOST! Bayaran 2x lipat!'); jingle(); } }
-  else day.streak = 0;
-  if(c.special && puas && !save.wall.includes(c.special.nm)){
-    save.wall.push(c.special.nm); persist(); renderFame();
-    setTimeout(()=> toast(`🖼️ Foto ${c.special.nm} dipajang di dinding salon!`), 700);
-  }
-  moneyPop(c, `+Rp ${pay}rb${inBoost ? ' 🔥' : ''}${c.quality >= 1.25 ? ' ✨' : ''}`);
-  blip(990, .12); setTimeout(()=> blip(1320, .14), 70);
-  c.state = 'done'; renderStations();
-  setTimeout(()=>{ if(custs.includes(c)) removeCust(c); }, 650);
-  updateHUD(); updateCombo();
+  let pay = svc.pay;
+  if(c.hadPerfect) pay *= 2;                       // tip 2x
+  if(c.special === 'artis') pay *= 3;
+  if(G.t < G.boostUntil) pay *= 2;                 // BOOST
+  pay = Math.round(pay);
+  save.money += pay; save.totalEarned += pay; persist();
+  G.earned += pay; G.served++;
+  moneyPop(c.x, c.y, `+${pay} 💰`);
+  blip(990, .12); setTimeout(() => blip(1320, .14), 70);
+  const puas = c.patience >= 8;
+  if(puas){ G.streak++; if(G.streak >= 3 && G.t >= G.boostUntil){ G.boostUntil = G.t + 15; banner('🔥 BOOST! Semua bayaran 2x lipat — 15 detik!'); jingle(); } }
+  else G.streak = 0;
+  updateCombo(); updateHUD();
+  c.state = 'done'; c.pauseT = 1.25;
+  c.el.classList.add('jump', 'happyFace');
+  fxBurst(c, '❤️', 4);
+  refreshCustUI(c);
+  if(level() > (G.levelAtStart || 1) && !G.leveledShown){ G.leveledShown = true;
+    setTimeout(() => { banner(`🏆 NAIK LEVEL ${level()}! ${level() === 2 ? 'Kursi +1 & pelanggan ARTIS datang!' : 'Salon PENGANTIN kebuka!'}`); layoutStations(); }, 600); }
 }
 
-/* ================= RENDER ================= */
-function custHTML(c, where){
-  const svc = SVC[c.svc];
-  const p = Math.max(0, Math.round(c.patience));
-  const pcol = p > 50 ? '#51cf66' : p > 25 ? '#fab005' : '#ff6b6b';
-  const mood = c.state === 'done' ? '😍' : p > 50 ? '😊' : p > 25 ? '😐' : '😠';
-  let bubble;
-  if(c.state === 'wait') bubble = `${svc.ic} ${svc.nm.split(' ')[0]}`;
-  else if(c.state === 'done') bubble = '✨ GLOWING!';
-  else { const t = TOOLS[svc.steps[c.step]]; bubble = `${t.ic} ${t.nm}!`; }
-  return `<div class="cust ${c.state==='wait'||c.state==='sit' ? 'messy' : 'glow'} ${c.special ? 'special' : ''} ${selWait===c ? 'sel' : ''}" data-cid="${c.id}">
-    <div class="bubble ${c.state==='sit' ? 'need' : ''}">${bubble}</div>
-    ${c.special ? `<div class="tag">${c.special.tag}</div>` : ''}
-    <div class="ava">${c.ava}</div>
-    <div class="pbar"><i style="width:${p}%;background:${pcol}"></i></div>
-    <div class="mood">${mood}</div>
-  </div>`;
-}
-function renderWait(){
-  const wr = $('#waitRow');
-  const waiting = custs.filter(c => c.state === 'wait');
-  wr.innerHTML = Array.from({length: 4}, (_, i) =>
-    `<div class="wslot">${waiting[i] ? custHTML(waiting[i], 'wait') : '<span class="sofa">🛋️</span>'}</div>`).join('');
-  wr.querySelectorAll('.cust').forEach(el => el.onclick = () => {
-    const c = custs.find(x => x.id == el.dataset.cid); if(!c) return;
-    selWait = selWait === c ? null : c; blip(760, .06); renderWait(); renderStations();
-    $('#toolLbl').textContent = selWait ? `Dipilih: ${SVC[c.svc].nm} — sekarang tap kursi yang kosong!` : 'Tap pelanggan nunggu → tap kursi kosong.';
-  });
-}
-function renderStations(){
-  const box = $('#stations');
-  box.innerHTML = stations.map((c, i) =>
-    `<div class="station ${c ? '' : 'free'} ${selWait && !c ? 'target' : ''}" data-st="${i}">
-      <span class="mirror">🪞</span>
-      ${c ? custHTML(c, 'sit') : '<div class="chairE">🪑</div>'}
-    </div>`).join('');
-  box.querySelectorAll('.station').forEach(el => el.onclick = () => {
-    const i = +el.dataset.st;
-    if(selWait && !stations[i]) seatCust(selWait, i);
-  });
-  box.querySelectorAll('.cust').forEach(el => el.onclick = (e) => {
-    e.stopPropagation();
-    const c = custs.find(x => x.id == el.dataset.cid); if(!c || c.state !== 'sit') return;
-    const t = SVC[c.svc].steps[c.step];
-    $('#toolLbl').innerHTML = `${c.ava} minta <b>${TOOLS[t].ic} ${TOOLS[t].nm}</b> — tap alatnya di bawah!`;
-    renderTools(t);
-    blip(660, .06);
-  });
-}
+/* ================= TOOLS & TIMING ================= */
 function renderTools(needTool){
   const box = $('#tools');
-  box.innerHTML = toolsForLevel().map(t =>
+  box.innerHTML = unlockedTools().map(t =>
     `<div class="tool ${needTool === t ? 'need' : ''}" data-tool="${t}">
        <div class="ic">${TOOLS[t].ic}</div><div class="nm">${TOOLS[t].nm}</div></div>`).join('');
   box.querySelectorAll('.tool').forEach(el => el.onclick = () => {
     const t = el.dataset.tool;
-    const c = custs.find(x => x.state === 'sit' && SVC[x.svc].steps[x.step] === t);
-    if(!c){ el.classList.add('wrong'); setTimeout(()=> el.classList.remove('wrong'), 320); blip(170, .15);
-      $('#toolLbl').textContent = 'Nggak ada yang minta alat itu sekarang 😅'; return; }
+    const c = custs.find(x => x.state === 'seated' && SVC[x.svc].steps[x.step] === t && stylist.state === 'idle');
+    if(!c){ el.classList.add('wrong'); setTimeout(() => el.classList.remove('wrong'), 320); blip(170, .15);
+      $('#toolLbl').textContent = stylist.state !== 'idle' ? 'Pegawai lagi kerja — tunggu bentar ya!' : 'Nggak ada yang minta alat itu sekarang 😅'; return; }
     openTiming(c, t);
   });
 }
-function renderFame(){
-  const all = ['ARTIS', 'PENGANTIN', 'IBU ARISAN'];
-  $('#frames').innerHTML = all.map(n => {
-    const got = save.wall.includes(n);
-    const ava = n === 'ARTIS' ? '🤩' : n === 'PENGANTIN' ? '👰' : '👩';
-    return `<span class="frame ${got ? '' : 'empty'}">${got ? ava : '?'}</span>`;
-  }).join('');
-}
-function updateHUD(){
-  $('#moneyPill').textContent = '💰 Rp ' + (day ? day.earned : 0) + 'rb';
-  if(day){ const mins = 9 * 60 + Math.floor(day.t / day.len * 600);
-    $('#clockPill').textContent = '🕘 ' + String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
-}
-function updateCombo(){
-  const el = $('#combo');
-  if(day && day.t < day.boostUntil){ el.textContent = `🔥 BOOST 2x! ${Math.ceil(day.boostUntil - day.t)}s`; el.classList.add('boost'); }
-  else { el.textContent = `🔥 Combo: ${day ? day.streak : 0}`; el.classList.remove('boost'); }
-}
-function moneyPop(c, txt){
-  const st = document.querySelector(`.station[data-st="${c.station}"]`);
-  if(!st) return;
-  const m = document.createElement('div'); m.className = 'money'; m.textContent = txt;
-  const r = st.getBoundingClientRect(), f = $('#floor').getBoundingClientRect();
-  m.style.left = (r.left - f.left + r.width / 2 - 34) + 'px'; m.style.top = (r.top - f.top + 6) + 'px';
-  $('#floor').appendChild(m); setTimeout(()=> m.remove(), 1200);
-}
-let toastH = null;
-function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastH); toastH = setTimeout(()=> t.classList.remove('show'), 1900); }
-let bannerH = null;
-function banner(msg){ const b = $('#banner'); b.textContent = msg; b.classList.add('show');
-  clearTimeout(bannerH); bannerH = setTimeout(()=> b.classList.remove('show'), 2400); }
-
-/* ================= TIMING MINIGAME ================= */
 let tAnim = null;
 function openTiming(c, tool){
   if(timingCtx) return;
-  const greenW = .30 + save.pro * .05, goldW = .10;
+  const greenW = .32, goldW = .11;
   const greenX = rnd(.06, 1 - greenW - .06);
-  timingCtx = { c, tool, greenX, greenW, goldX: greenX + (greenW - goldW) / 2, goldW, start: performance.now(), dur: 1050 };
-  $('#timingTitle').textContent = `${TOOLS[tool].ic} ${SVC[c.svc].nm} — ${c.ava}`;
+  timingCtx = { c, tool, greenX, greenW, goldX: greenX + (greenW - goldW) / 2, goldW, start: performance.now(), dur: 1000, pos: 0 };
+  $('#timingTitle').textContent = `${TOOLS[tool].ic} ${SVC[c.svc].nm} — ${TOOLS[tool].nm}`;
   $('#tgreen').style.left = (greenX * 100) + '%'; $('#tgreen').style.width = (greenW * 100) + '%';
   $('#tgold').style.left = (timingCtx.goldX * 100) + '%'; $('#tgold').style.width = (goldW * 100) + '%';
   $('#timing').classList.remove('hidden');
-  const step = () => {
+  const stepFn = () => {
     if(!timingCtx) return;
-    const now = performance.now();
-    const ph = ((now - timingCtx.start) % (timingCtx.dur * 2)) / timingCtx.dur;
-    const pos = ph < 1 ? ph : 2 - ph;
-    $('#tneedle').style.left = (pos * 100) + '%';
-    timingCtx.pos = pos;
+    const ph = ((performance.now() - timingCtx.start) % (timingCtx.dur * 2)) / timingCtx.dur;
+    timingCtx.pos = ph < 1 ? ph : 2 - ph;
+    $('#tneedle').style.left = (timingCtx.pos * 100) + '%';
   };
-  step();
-  tAnim = setInterval(step, 16);
+  stepFn(); tAnim = setInterval(stepFn, 16);
 }
-function closeTiming(hit){
+function closeTiming(){
   clearInterval(tAnim);
   const ctx = timingCtx; timingCtx = null;
   $('#timing').classList.add('hidden');
-  if(!ctx || !custs.includes(ctx.c)) return;
-  const c = ctx.c, pos = ctx.pos ?? 0;
-  let q, label;
-  if(pos >= ctx.goldX && pos <= ctx.goldX + ctx.goldW){ q = 1.35; label = '✨ SEMPURNA!'; c.patience = Math.min(115, c.patience + 12); }
-  else if(pos >= ctx.greenX && pos <= ctx.greenX + ctx.greenW){ q = 1.0; label = '👍 Bagus!'; }
-  else { q = .65; label = '😬 Kurang pas!'; c.patience = Math.max(1, c.patience - 8); }
-  c.quality *= q;
-  toast(label);
-  blip(q > 1.2 ? 1180 : q >= 1 ? 880 : 240, .14);
+  if(!ctx || !custs.includes(ctx.c) || ctx.c.state !== 'seated') return;
+  const pos = ctx.pos, c = ctx.c;
+  let perfect = false;
+  if(pos >= ctx.goldX && pos <= ctx.goldX + ctx.goldW){ perfect = true; c.patience = Math.min(c.maxPatience, c.patience + 4);
+    toast('✨ SEMPURNA SEMPURNA! Tip 2x lipat!'); blip(1250, .16); fxBurst(c, '⭐', 3); }
+  else if(pos >= ctx.greenX && pos <= ctx.greenX + ctx.greenW){ perfect = true; toast('✨ SEMPURNA! Tip 2x lipat!'); blip(1050, .14); }
+  else { toast('👍 Oke, lanjut kerja!'); blip(620, .1); }
+  if(perfect) c.hadPerfect = true;
+  startWork(c, ctx.tool);
+}
+$('#tbar').onclick = () => { if(timingCtx) closeTiming(); };
+
+/* ================= WORK (STYLIST) ================= */
+const WORKDUR = { gunting:2.2, cat:2.4, kuku:1.8, facial:2.2, makeup:2.4, dryer:2.0 };
+function startWork(c, tool){
+  c.state = 'working';
+  c.el.querySelector('.bubble').classList.add('hidden');
+  stylist.state = 'walkTo'; stylist.cust = c; stylist.tool = tool;
+  stylist.workDur = tool === 'dryer' && save.fastDryer ? 1.1 : WORKDUR[tool];
+  const st = stationEl(c.station); if(st) st.classList.add('working');
+}
+function endWork(){
+  const c = stylist.cust, tool = stylist.tool;
+  const st = stationEl(c.station);
+  if(st){ st.classList.remove('working'); st.querySelector('.prog i').style.width = '0%'; }
+  stylist.el.classList.remove('cutting', 'drying');
+  c.el.classList.remove('bow', 'flutter');
+  stylist.state = 'return'; stylist.cust = null; stylist.tool = null;
+  if(tool === 'cat'){ // rambut berubah warna!
+    const nc = pick(HAIRCOLS.filter(h => h !== c.cfg.hair));
+    c.cfg.hair = nc;
+    c.el.querySelectorAll('.hairBack,.hairTop,.hairBun,.hijab').forEach(h => h.style.background = nc);
+  }
+  if(!custs.includes(c)) return;
   c.step++;
   if(c.step >= SVC[c.svc].steps.length) finishCust(c);
-  else { renderStations(); renderTools(); }
-  $('#toolLbl').textContent = 'Tap pelanggan nunggu → tap kursi kosong. Lagi dilayani? Tap alat yang diminta!';
+  else { c.state = 'seated'; refreshCustUI(c); renderTools(); }
 }
-$('#tbar').onclick = () => closeTiming(true);
-
-/* ================= MAIN LOOP ================= */
-let loopTimer = null;
-function startLoop(){ stopLoop(); lastTs = performance.now(); loopTimer = setInterval(frame, 50); }
-function stopLoop(){ if(loopTimer) clearInterval(loopTimer); loopTimer = null; }
-function frame(){
-  if(!day || day.over){ stopLoop(); return; }
-  const now = performance.now();
-  const dt = Math.min(.06, (now - lastTs) / 1000 || 0); lastTs = now;
-  if(day.paused) return;
-  day.t += dt;
-  // chaos at 17:00 -> t = (17-9)/10 * len = .8*len
-  if(!day.chaosDone && day.t >= day.len * .8){ day.chaos = true; day.chaosDone = true;
-    banner('⏰ JAM SIBUK 17:00! Pelanggan membludak!'); blip(1200, .2);
-    setTimeout(()=> { if(day) day.chaos = false; }, 20000); }
-  day.spawnIn -= dt * 1000;
-  if(day.spawnIn <= 0){ spawnCust();
-    day.spawnIn = LEVELS[save.lvl-1].spawn * rnd(.75, 1.25) * (day.chaos ? .45 : 1); }
-  patienceTick(dt);
-  tickRender(); updateHUD(); updateCombo();
-  if(day.t >= day.len) endDay(false);
-}
-function tickRender(){
-  for(const c of custs){
-    const el = document.querySelector(`.cust[data-cid="${c.id}"]`);
-    if(!el) continue;
-    const p = Math.max(0, Math.round(c.patience));
-    const bar = el.querySelector('.pbar i');
-    if(bar){ bar.style.width = p + '%'; bar.style.background = p > 50 ? '#51cf66' : p > 25 ? '#fab005' : '#ff6b6b'; }
-    const mood = el.querySelector('.mood');
-    if(mood) mood.textContent = c.state === 'done' ? '😍' : p > 50 ? '😊' : p > 25 ? '😐' : '😠';
+function workFx(c, tool, dt){
+  const headX = c.x, headY = c.y - 82;
+  if(tool === 'gunting' && Math.random() < dt * 14){
+    spawnParticle(headX + rnd(-13, 13), headY + rnd(0, 8),
+      { w: rnd(3, 6), h: 2.5, color: c.cfg.hair, vx: rnd(-9, 9), vy: rnd(4, 16), g: 130, life: rnd(.7, 1.15) });
+  }
+  if(tool === 'dryer' && Math.random() < dt * 10){
+    spawnParticle(c.x + 26, headY - 4, { emoji:'💨', vx: -rnd(45, 75), vy: rnd(-4, 8), life: .5 });
+  }
+  if((tool === 'facial' || tool === 'makeup' || tool === 'kuku') && Math.random() < dt * 6){
+    spawnParticle(headX + rnd(-16, 16), headY + rnd(-8, 12), { emoji:'✨', vx: rnd(-6, 6), vy: -rnd(8, 20), life: .7 });
+  }
+  if(tool === 'cat' && Math.random() < dt * 8){
+    spawnParticle(headX + rnd(-12, 12), headY + rnd(0, 10), { emoji:'🎨', vx: rnd(-8, 8), vy: rnd(10, 26), g: 60, life: .8 });
   }
 }
 
-/* ================= BUTTONS ================= */
-$('#btnStart').onclick = () => { $('#startOverlay').classList.add('hidden'); blip(700); newDay(); startLoop(); };
-$('#btnDay').onclick = () => {
-  if(day && day.started && !day.over){ endDay(false); }
-  else { $('#endOverlay').classList.add('hidden'); newDay(); startLoop(); }
-};
-$('#btnNextDay').onclick = () => { $('#endOverlay').classList.add('hidden'); newDay(); startLoop(); };
-$('#btnPause').onclick = () => { if(!day) return; day.paused = !day.paused;
-  $('#btnPause').textContent = day.paused ? '▶️ Lanjut' : '⏸️ Jeda'; toast(day.paused ? '⏸️ Jeda dulu' : '▶️ Gas lagi!'); };
-$('#btnSound').onclick = () => { soundOn = !soundOn; $('#btnSound').textContent = soundOn ? '🔊' : '🔇'; if(soundOn) blip(800); };
-const _blip = blip; blip = (f, d) => { if(soundOn) _blip(f, d); };
+/* ================= DAY FLOW ================= */
+function newDay(){
+  custs.forEach(c => c.el.remove()); custs = []; particles.forEach(p => p.el.remove()); particles = [];
+  if(!stylist) buildStylist();
+  stylist.state = 'idle'; stylist.x = KASIR().x; stylist.y = KASIR().y; place(stylist);
+  G = { t:0, len:120, earned:0, served:0, angry:0, stars:5, streak:0, boostUntil:-1,
+        spawnIn:600, over:false, paused:false, started:true, levelAtStart: level(), leveledShown:false };
+  demoMode = false; selWait = null;
+  layoutStations(); renderTools(); updateHUD(); updateCombo();
+  $('#btnDay').textContent = '🏁 Akhiri Hari';
+  banner(`🏠 Level ${level()} — ${['','Salon Rumahan','Salon di Mall','Salon Artis — Semarang Glam'][level()]}`);
+}
+function endDay(failed){
+  if(!G || G.over) return;
+  G.over = true; G.started = false;
+  if(timingCtx) closeTimingSilent();
+  $('#endTitle').textContent = failed ? '⭐ Bintang Habis — Salon Tutup!' : '🌙 Hari Selesai!';
+  $('#endStats').innerHTML =
+    `<div class="stat2"><span>💰 Didapat hari ini</span><span>${G.earned} coin</span></div>
+     <div class="stat2"><span>😍 Pelanggan dilayani</span><span>${G.served} orang</span></div>
+     <div class="stat2"><span>😤 Marah & pergi</span><span>${G.angry} orang</span></div>
+     <div class="stat2"><span>🏆 Level salon</span><span>Level ${level()} (total ${save.totalEarned}/3000)</span></div>
+     <div class="stat2"><span>💰 Tabungan</span><span>${save.money} coin</span></div>`;
+  $('#endMsg').innerHTML = failed ? 'Besok lebih cepat lagi ya, Bos! Upgrade dryer biar kerja makin ngebut.'
+    : level() >= 3 ? 'Salonmu udah level ARTIS! 🎉' : `Kumpulin ${1000 - (save.totalEarned % 1000)} coin lagi buat naik level!`;
+  $('#endOverlay').classList.remove('hidden');
+  $('#btnDay').textContent = '▶️ Mulai Hari';
+  if(!failed) jingle();
+}
+function closeTimingSilent(){ clearInterval(tAnim); timingCtx = null; $('#timing').classList.add('hidden'); }
 
-/* ================= INIT ================= */
-$('#startTarget').textContent = 'Rp ' + LEVELS[save.lvl-1].target + 'rb — ' + LEVELS[save.lvl-1].nm;
-stations = Array.from({length: chairCount()}, () => null);
-renderStations(); renderWait(); renderTools(); renderFame(); updateHUD();
+/* ================= SHOP ================= */
+function renderShop(){
+  $('#shopMoney').textContent = save.money;
+  const items = [
+    { id:'chair', ic:'🪑', nm:'Kursi Baru', ds:'+1 kursi pelanggan (maks total 5)', price:500,
+      can: chairTotal() < 5, maxed: chairTotal() >= 5 },
+    { id:'dryer', ic:'💨', nm:'Hair Dryer Cepat', ds:'Dryer selesai 2x lebih cepat', price:300,
+      can: !save.fastDryer, maxed: save.fastDryer },
+  ];
+  $('#shopBox').innerHTML = items.map(it =>
+    `<div class="shopItem"><div class="ic">${it.ic}</div>
+      <div class="inf"><b>${it.nm}</b><span>${it.ds}</span></div>
+      <button class="buy" data-buy="${it.id}" ${(!it.can || save.money < it.price) ? 'disabled' : ''}>${it.maxed ? 'PUNYA ✔' : it.price + ' coin'}</button>
+    </div>`).join('') +
+    `<p style="font-size:12px">🏆 Level naik tiap 1.000 coin total pendapatan.<br>Lv.2: 4 kursi + pelanggan ARTIS ⭐ • Lv.3: pesanan PENGANTIN 💍</p>`;
+  document.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
+    if(save.money < (b.dataset.buy === 'chair' ? 500 : 300)) return;
+    if(b.dataset.buy === 'chair'){ save.money -= 500; save.extraChairs++; layoutStations(); }
+    else { save.money -= 300; save.fastDryer = true; }
+    persist(); blip(880, .15); renderShop(); updateHUD(); toast('✅ Upgrade kebeli!');
+  });
+}
+
+/* ================= HUD ================= */
+function updateHUD(){
+  $('#uiMoney').textContent = save.money;
+  $('#uiStars').textContent = G ? G.stars : 5;
+  $('#uiLevel').textContent = level();
+  const left = G && G.started ? Math.max(0, G.len - G.t) : 120;
+  $('#uiTimer').textContent = Math.floor(left / 60) + ':' + String(Math.floor(left % 60)).padStart(2, '0');
+}
+function updateCombo(){
+  const el = $('#comboBar');
+  if(G && G.t < G.boostUntil){ el.textContent = `🔥 BOOST AKTIF! Semua bayaran 2x lipat — sisa ${Math.ceil(G.boostUntil - G.t)} detik!`; el.classList.add('boost'); }
+  else { el.textContent = `🔥 Combo: ${G ? G.streak : 0} — layani 3 pelanggan puas beruntun buat BOOST bayaran 2x!`; el.classList.remove('boost'); }
+}
+
+/* ================= MAIN LOOP (rAF 60fps) ================= */
+let lastTs = 0;
+function tick(ts){
+  requestAnimationFrame(tick);
+  const dt = Math.min(.05, lastTs ? (ts - lastTs) / 1000 : .016); lastTs = ts;
+  // particles
+  for(const p of [...particles]){
+    p.life -= dt; p.vy += (p.g || 0) * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px';
+    p.el.style.opacity = clamp(p.life, 0, 1);
+    if(p.life <= 0){ p.el.remove(); particles = particles.filter(x => x !== p); }
+  }
+  // stylist
+  if(stylist){
+    let moving = false;
+    if(stylist.state === 'walkTo' && stylist.cust){
+      const c = stylist.cust;
+      moving = !moveToward(stylist, c.x + 42, chairFeetY(), M.W * .85, dt);
+      if(!moving){ stylist.state = 'work'; stylist.workT = 0;
+        stylist.el.querySelector('.toolInHand').textContent = TOOLS[stylist.tool].ic;
+        stylist.el.classList.add(stylist.tool === 'dryer' ? 'drying' : 'cutting');
+        if(stylist.tool === 'gunting' || stylist.tool === 'cat') c.el.classList.add('bow');
+        if(stylist.tool === 'dryer') c.el.classList.add('flutter');
+      }
+    } else if(stylist.state === 'work' && stylist.cust){
+      stylist.workT += dt;
+      const st = stationEl(stylist.cust.station);
+      if(st) st.querySelector('.prog i').style.width = (stylist.workT / stylist.workDur * 100) + '%';
+      workFx(stylist.cust, stylist.tool, dt);
+      if(stylist.workT >= stylist.workDur) endWork();
+    } else if(stylist.state === 'return'){
+      moving = !moveToward(stylist, KASIR().x, KASIR().y, M.W * .85, dt);
+      if(!moving) stylist.state = 'idle';
+    }
+    setWalking(stylist, moving); place(stylist);
+  }
+  // customers
+  for(const c of [...custs]){
+    let moving = false, stomp = false;
+    if(c.state === 'enter'){ const s = waitSpot(c.waitIdx); moving = !moveToward(c, s.x, s.y, M.W * .5, dt); if(!moving){ c.state = 'wait'; refreshCustUI(c); } }
+    else if(c.state === 'toChair'){ moving = !moveToward(c, chairX(c.station, stations.length), chairFeetY(), M.W * .55, dt);
+      if(!moving){ c.state = 'seated'; c.el.classList.add('seated'); refreshCustUI(c); renderTools(); } }
+    else if(c.state === 'leave'){ moving = !moveToward(c, -40, DOOR().y, M.W * .55, dt); if(!moving){ removeCust(c); continue; } }
+    else if(c.state === 'leaveAngry'){ stomp = true; moving = !moveToward(c, -40, DOOR().y, M.W * .6, dt); if(!moving){ removeCust(c); continue; } }
+    else if(c.state === 'angryPause'){ c.pauseT -= dt; if(c.pauseT <= 0){ c.el.classList.remove('angryFace'); startLeave(c, true); } }
+    else if(c.state === 'done'){ c.pauseT -= dt; if(c.pauseT <= 0){ c.el.classList.remove('jump', 'happyFace', 'seated'); startLeave(c, false); } }
+    setWalking(c, moving, stomp); place(c);
+    // patience
+    if(G && !G.over && !c.demo && (c.state === 'wait' || c.state === 'enter' || c.state === 'seated')){
+      c.patience -= dt * (c.state === 'seated' ? .55 : 1);
+      if(c.patience <= 0){ angryLeave(c); continue; }
+      refreshPatienceOnly(c);
+    }
+  }
+  // game clock & spawning
+  if(G && G.started && !G.over && !G.paused){
+    G.t += dt;
+    G.spawnIn -= dt * 1000;
+    if(G.spawnIn <= 0){ spawnCust(false); G.spawnIn = rnd(4000, 6000); }
+    if(G.t >= G.len) endDay(false);
+    updateHUD(); updateCombo();
+  }
+}
+function refreshPatienceOnly(c){
+  const i = c.el.querySelector('.pbar i'); if(!i) return;
+  i.style.width = clamp(c.patience / c.maxPatience * 100, 0, 100) + '%';
+  i.style.background = c.patience > 13 ? '#51cf66' : c.patience > 6 ? '#fab005' : '#ff6b6b';
+}
+
+/* ================= DEMO / ATTRACT MODE ================= */
+function stageDemo(){
+  demoMode = true;
+  layoutStations();
+  const a = spawnCust(true); if(a){ a.waitIdx = 0; a.x = waitSpot(0).x; a.y = waitSpot(0).y; a.state = 'wait'; place(a); refreshCustUI(a); }
+  const b = spawnCust(true); if(b){ b.state = 'seated'; b.station = 0; stations[0].cust = b;
+    b.x = chairX(0, stations.length); b.y = chairFeetY(); b.el.classList.add('seated'); place(b); refreshCustUI(b);
+    stylist.state = 'work'; stylist.cust = b; stylist.tool = 'gunting'; stylist.workDur = 9999; stylist.workT = 0;
+    stylist.x = b.x + 44; stylist.y = chairFeetY(); place(stylist);
+    stylist.el.querySelector('.toolInHand').textContent = '✂️';
+    stylist.el.classList.add('cutting'); b.el.classList.add('bow');
+    stationEl(0).classList.add('working'); }
+  const c2 = spawnCust(true); if(c2){ c2.x = M.W * .45; c2.state = 'enter'; c2.waitIdx = 1; place(c2); }
+  const d = spawnCust(true); if(d){ d.state = 'seated'; d.station = 1; stations[1].cust = d;
+    d.x = chairX(1, stations.length); d.y = chairFeetY(); d.el.classList.add('seated'); place(d); refreshCustUI(d); }
+  const e = spawnCust(true); if(e){ e.state = 'seated'; e.station = 2; stations[2].cust = e;
+    e.x = chairX(2, stations.length); e.y = chairFeetY(); e.el.classList.add('seated'); place(e); refreshCustUI(e); }
+  setInterval(() => { if(demoMode && b && custs.includes(b)) workFx(b, 'gunting', .05); }, 90);
+}
+
+/* ================= BUTTONS & INIT ================= */
+$('#btnStart').onclick = () => { $('#startOverlay').classList.add('hidden'); blip(700); newDay(); };
+$('#btnDay').onclick = () => {
+  if(G && G.started && !G.over) endDay(false);
+  else { $('#endOverlay').classList.add('hidden'); $('#startOverlay').classList.add('hidden'); newDay(); }
+};
+$('#btnNextDay').onclick = () => { $('#endOverlay').classList.add('hidden'); newDay(); };
+$('#btnPause').onclick = () => { if(!G) return; G.paused = !G.paused;
+  $('#btnPause').textContent = G.paused ? '▶️ Lanjut' : '⏸️ Jeda'; toast(G.paused ? '⏸️ Jeda dulu' : '▶️ Gas lagi!'); };
+$('#btnShop').onclick = () => { renderShop(); $('#shopOverlay').classList.remove('hidden'); };
+$('#btnCloseShop').onclick = () => $('#shopOverlay').classList.add('hidden');
+$('#btnSound').onclick = () => { save.sound = !save.sound; persist();
+  $('#btnSound').innerHTML = '<small>SUARA</small>' + (save.sound ? '🔊' : '🔇'); if(save.sound) blip(800); };
+$('#btnSound').innerHTML = '<small>SUARA</small>' + (save.sound ? '🔊' : '🔇');
+
+measure(); buildStylist(); layoutStations(); renderTools(); updateHUD(); stageDemo();
+requestAnimationFrame(tick);
 
 /* ================= TEST HOOKS ================= */
-if(new URLSearchParams(location.search).has('demo')){
+const QS = new URLSearchParams(location.search);
+if(QS.has('shot')){
+  $('#startOverlay').classList.add('hidden');
+  const b = custs.find(c => c.state === 'seated');
+  if(b) fxBurst(b, '❤️', 3);
+  document.title = 'SHOTOK';
+}
+if(QS.has('auto')){
   $('#startOverlay').classList.add('hidden');
   newDay();
-  spawnCust(); spawnCust(); spawnCust();
-  const w = custs[0]; if(w) seatCust(w, 0);
-  const w2 = custs.find(c => c.state === 'wait'); if(w2) seatCust(w2, 1);
-  day.earned = 135; day.streak = 2; updateHUD(); updateCombo();
-  document.title = 'DEMOOK';
-}
-if(new URLSearchParams(location.search).has('auto')){
-  $('#startOverlay').classList.add('hidden');
-  newDay(); startLoop();
+  setInterval(() => tick(performance.now()), 50);   // headless driver (rAF is throttled there)
   const bot = setInterval(() => {
     const w = custs.find(c => c.state === 'wait');
-    const free = stations.findIndex(s => !s);
+    const free = stations.findIndex(s => !s.cust);
     if(w && free >= 0) seatCust(w, free);
-    const sit = custs.find(c => c.state === 'sit');
-    if(sit && !timingCtx) openTiming(sit, SVC[sit.svc].steps[sit.step]);
-    else if(timingCtx && Math.random() < .6) closeTiming(true);
-    if(!day || day.over) clearInterval(bot);
-  }, 350);
-  setTimeout(() => { document.title = 'AUTODONE served=' + (day ? day.served : -1) + ' earned=' + (day ? day.earned : -1) + ' custs=' + custs.length; }, 25000);
+    const sit = custs.find(c => c.state === 'seated');
+    if(sit && !timingCtx && stylist.state === 'idle') openTiming(sit, SVC[sit.svc].steps[sit.step]);
+    else if(timingCtx && Math.random() < .55) closeTiming();
+    if(!G || G.over) clearInterval(bot);
+  }, 300);
+  setTimeout(() => { document.title = 'AUTODONE served=' + (G ? G.served : -1) + ' earned=' + (G ? G.earned : -1) + ' custs=' + custs.length + ' stars=' + (G ? G.stars : -1); }, 25000);
 }
 </script>
 </body>
