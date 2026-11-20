@@ -71,6 +71,13 @@
     background:rgba(15,25,45,.94); border:2.5px solid #ffd93b; color:#fff; font-weight:900; font-size:19px; text-align:center;
     padding:13px 22px; border-radius:17px; opacity:0; transition:all .22s; max-width:88vw; }
   #toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  #photoSec { margin:14px auto 2px; width:min(92vw,430px); background:rgba(20,16,8,.45); border:2px solid #d9b45b; border-radius:16px; padding:10px 10px 8px; }
+  .photoTitle { font-size:12.5px; font-weight:900; color:#ffe9a8; text-align:center; line-height:1.35; }
+  #photoRow { display:flex; justify-content:center; gap:12px; margin-top:9px; }
+  .pSlot { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; }
+  .pSlot img { width:54px; height:54px; border-radius:50%; border:3.5px solid #888; object-fit:cover; display:block; background:#333; }
+  .pSlot span { font-size:10.5px; font-weight:900; color:#fff; letter-spacing:.4px; }
+  #photoReset { margin-top:8px; background:none; border:none; color:#ffd93b; font-size:12px; font-weight:800; cursor:pointer; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -82,6 +89,12 @@
   <button class="modeBtn" id="btnParty">👥 MAIN BARENG DI HP INI</button>
   <div class="cntRow"><span>Jumlah pemain:</span>
     <button class="cntBtn" data-n="2">2</button><button class="cntBtn" data-n="3">3</button><button class="cntBtn sel" data-n="4">4</button>
+  </div>
+  <div id="photoSec">
+    <div class="photoTitle">📸 FOTO PEMAIN — tap foto buat ganti pakai foto masing-masing</div>
+    <div id="photoRow"></div>
+    <button id="photoReset">↺ Balikin ke foto bawaan</button>
+    <input type="file" id="photoInput" accept="image/*" style="display:none;">
   </div>
   <button class="modeBtn" id="btnWA">📲 AJAK TEMAN LEWAT WHATSAPP</button>
   <button class="modeBtn" id="btnOnline" style="background:linear-gradient(#3a86ff,#5f27c9);">🌐 MAIN ONLINE BERDUA (KODE ROOM)</button>
@@ -152,6 +165,101 @@ const PLAYERS = [
   { name:'KUNING', emoji:'😁', color:'#f4b41a', dark:'#b97e06', pastel:'#fdf0bd', start:26, home:[[7,13],[7,12],[7,11],[7,10],[7,9]], baseRC:[9,9], label:'BOT' },
   { name:'BIRU', emoji:'🤩', color:'#3a86ff', dark:'#1d4fa1', pastel:'#d2e5ff', start:39, home:[[13,7],[12,7],[11,7],[10,7],[9,7]], baseRC:[9,0], label:'BOT' },
 ];
+/* ================= FOTO PEMAIN (masing-masing beda) ================= */
+function makeAvatar(pl){
+  const P = PLAYERS[pl];
+  const cv = document.createElement('canvas'); cv.width = cv.height = 144;
+  const x = cv.getContext('2d');
+  const skins = ['#ffdbac', '#f1c27d', '#e0ac69', '#8d5524'];
+  const hairs = ['#26324a', '#6e451d', '#111111', '#b97e06'];
+  x.fillStyle = P.pastel; x.fillRect(0, 0, 144, 144);
+  x.fillStyle = P.color; x.beginPath(); x.ellipse(72, 152, 54, 46, 0, Math.PI, 0); x.fill();
+  x.fillStyle = skins[pl % 4]; x.beginPath(); x.arc(72, 74, 40, 0, 7); x.fill();
+  x.fillStyle = hairs[pl % 4]; x.beginPath(); x.arc(72, 64, 41, Math.PI * 1.02, Math.PI * 1.98); x.fill();
+  x.fillRect(31, 56, 82, 13);
+  x.fillStyle = '#26324a';
+  x.beginPath(); x.arc(57, 79, 4.6, 0, 7); x.fill();
+  x.beginPath(); x.arc(87, 79, 4.6, 0, 7); x.fill();
+  x.strokeStyle = '#26324a'; x.lineWidth = 3.4; x.lineCap = 'round';
+  x.beginPath(); x.arc(72, 88, 15, Math.PI * .18, Math.PI * .82); x.stroke();
+  return cv.toDataURL('image/png');
+}
+let PHOTOS = [null, null, null, null];
+let NETPHOTO = null;
+function defaultPhoto(pl){ return pl === 0 ? window.LUDO_FACE : makeAvatar(pl); }
+function loadPhotos(){
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('ludo_photos_v1') || '{}'); } catch(e) {}
+  for(let i = 0; i < 4; i++) PHOTOS[i] = saved[i] || defaultPhoto(i);
+}
+function savePhotos(){
+  const o = {};
+  for(let i = 0; i < 4; i++){ if(PHOTOS[i] && PHOTOS[i] !== defaultPhoto(i)) o[i] = PHOTOS[i]; }
+  try { localStorage.setItem('ludo_photos_v1', JSON.stringify(o)); } catch(e) {}
+}
+function photoFor(pl){
+  if(window.ONLINE && NETPHOTO && pl === (window.MYIDX === 0 ? 2 : 0)) return NETPHOTO;
+  return PHOTOS[pl] || defaultPhoto(pl);
+}
+function refreshAvatars(){
+  document.querySelectorAll('.corner').forEach(cn => {
+    const pl = +cn.dataset.pl, av = cn.querySelector('.avatar'); if(!av) return;
+    const img = av.querySelector('img'); if(!img) return;
+    const want = photoFor(pl), key = want.length + '|' + want.slice(-24);
+    if(img.dataset.pk !== key){ img.dataset.pk = key; img.src = want; }
+  });
+}
+function setPhoto(pl, url){ PHOTOS[pl] = url; savePhotos(); renderPhotoRow(); refreshAvatars(); }
+function smallPhoto(pl){
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => { try { const cv = document.createElement('canvas'); cv.width = cv.height = 96; const x = cv.getContext('2d'); const s = Math.min(img.width, img.height); x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 96, 96); res(cv.toDataURL('image/jpeg', .72)); } catch(e) { res(null); } };
+    img.onerror = () => res(null);
+    img.src = photoFor(pl);
+  });
+}
+function sendMyPhoto(){ smallPhoto(window.MYIDX || 0).then(u => { if(u) netSend({ t: 'photo', img: u }); }); }
+function renderPhotoRow(){
+  const row = $('photoRow'); if(!row) return; row.innerHTML = '';
+  PLAYERS.forEach((P, i) => {
+    const d = document.createElement('div'); d.className = 'pSlot';
+    d.innerHTML = '<img src="' + photoFor(i) + '" style="border-color:' + P.color + ';"><span>' + P.emoji + ' ' + P.name + '</span>';
+    d.addEventListener('click', () => pickPhoto(i));
+    row.appendChild(d);
+  });
+}
+let pickIdx = 0;
+function pickPhoto(i){
+  pickIdx = i; initAudio(); beep(700, 990, .07, .09, 'sine');
+  toast('📸 Pilih foto buat pemain ' + PLAYERS[i].name);
+  $('photoInput').click();
+}
+loadPhotos();
+$('photoInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 160;
+      const x = cv.getContext('2d'); const s = Math.min(img.width, img.height);
+      x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
+      setPhoto(pickIdx, cv.toDataURL('image/jpeg', .85));
+      toast('✅ Foto ' + PLAYERS[pickIdx].name + ' diganti!');
+    };
+    img.onerror = () => toast('⚠️ Gambarnya gagal dibuka — coba foto lain');
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+});
+$('photoReset').addEventListener('click', () => {
+  for(let i = 0; i < 4; i++) PHOTOS[i] = defaultPhoto(i);
+  savePhotos(); renderPhotoRow(); refreshAvatars();
+  toast('↺ Foto balik ke bawaan');
+});
+renderPhotoRow();
+
 const FINISH = 56;
 let G = null;
 function pawnCell(pl, pos){
@@ -245,11 +353,11 @@ function renderPlayers(){
     const av = cn.querySelector('.avatar'), plate = cn.querySelector('.plate');
     if(!G.order.includes(pl)){ cn.style.display = 'none'; return; }
     cn.style.display = 'flex';
-    if(!av.dataset.done){
-      av.dataset.done = '1';
-      av.innerHTML = '<img src="' + window.LUDO_FACE + '" alt="">';
-      av.style.borderColor = P.color;
-    }
+    av.style.borderColor = P.color;
+    let aimg = av.querySelector('img');
+    if(!aimg){ av.innerHTML = '<img alt="">'; aimg = av.querySelector('img'); }
+    const want = photoFor(pl), wkey = want.length + '|' + want.slice(-24);
+    if(aimg.dataset.pk !== wkey){ aimg.dataset.pk = wkey; aimg.src = want; }
     const fin = G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length;
     plate.innerHTML = P.emoji + ' ' + P.name + '<br>🏆 ' + fin + '/4';
     cn.classList.toggle('turn', G.turn === pl && !G.over);
@@ -520,7 +628,7 @@ function showSharedPodium(r){
     const P = byName(item.name);
     const d = document.createElement('div'); d.className = 'pod';
     d.innerHTML = (place === 0 ? '<div class="pCrown">👑</div>' : '<div style="height:30px;"></div>')
-      + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + window.LUDO_FACE + '"></div>'
+      + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + photoFor(PLAYERS.indexOf(P)) + '"></div>'
       + '<div class="pName">' + P.emoji + ' ' + item.name + '</div>'
       + '<div class="pFin">🏠 ' + item.fin + '/4 pulang</div>'
       + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medals[place] + ', ' + medals[place] + 'cc);">' + nums[place] + '</div>';
@@ -554,6 +662,7 @@ function cleanupNet(){
   try { netConn && netConn.close(); } catch(e) {}
   try { peer && peer.destroy(); } catch(e) {}
   netConn = null; peer = null;
+  NETPHOTO = null;
   $('chatBtn').style.display = 'none'; $('chatPanel').style.display = 'none';
 }
 function fixOnlineNames(){
@@ -568,6 +677,7 @@ function startOnlineGame(){
   $('podiumScr').style.display = 'none';
   startGame(['human', 'human']);
   fixOnlineNames();
+  sendMyPhoto();
   $('chatBtn').style.display = 'block';
   toast(window.MYIDX === 0 ? '🌐 Terhubung! Kamu MERAH — mulai duluan!' : '🌐 Terhubung! Kamu KUNING — MERAH jalan duluan', 2600);
 }
@@ -578,6 +688,7 @@ function onNetData(m){
   else if(m.t === 'move'){ if(G && !G.over) doMove(m.pawn); }
   else if(m.t === 'again'){ toast('🔁 Temanmu ngajak main lagi!'); startOnlineGame(); }
   else if(m.t === 'chat'){ addChatMsg('TEMAN', m.text, false); if($('chatPanel').style.display === 'none'){ unread++; const b = $('chatBadge'); b.textContent = unread; b.style.display = 'block'; } beep(880, 1320, .09, .08, 'sine'); }
+  else if(m.t === 'photo'){ NETPHOTO = m.img; refreshAvatars(); }
   else if(m.t === 'bye'){ toast('👋 Temanmu keluar dari room'); cleanupNet(); $('gameScr').style.display = 'none'; $('podiumScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; }
 }
 function setupConn(c){
@@ -585,6 +696,7 @@ function setupConn(c){
   c.on('open', () => {
     if(isHost){ startOnlineGame(); netSend({ t:'start' }); }
     else $('netStatus').textContent = '✅ Terhubung! Menunggu room dimulai...';
+    sendMyPhoto();
   });
   c.on('data', onNetData);
   c.on('close', () => { if(window.ONLINE){ toast('📴 Koneksi ke teman putus'); cleanupNet(); } });
@@ -895,7 +1007,7 @@ function showPodium(){
     const fin = G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length;
     const d = document.createElement('div'); d.className = 'pod';
     d.innerHTML = (place === 0 ? '<div class="pCrown">👑</div>' : '<div style="height:30px;"></div>')
-      + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + window.LUDO_FACE + '"></div>'
+      + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + photoFor(pl) + '"></div>'
       + '<div class="pName">' + P.emoji + ' ' + P.name + '</div>'
       + '<div class="pFin">🏠 ' + fin + '/4 pulang</div>'
       + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medals[place] + ', ' + medals[place] + 'cc);">' + nums[place] + '</div>';
