@@ -112,7 +112,7 @@
   </div>
   <button class="bigBtn" id="btnStart">🏁 GAS BALAPAN!</button>
   <button class="ghostBtn" id="btnGarage">🔧 GARASI — motor & warna (🪙 <span id="garageCoins">0</span>)</button>
-  <div class="foot">Karier: menang balapan → kumpulin 🪙 → beli motor lebih kencang di Garasi • DEVILCUPS</div>
+  <div class="foot">Karier: menang balapan → kumpulin 🪙 → beli motor lebih kencang di Garasi • DEVILCUPS • v5</div>
 </div>
 
 <div class="screen" id="garageScreen">
@@ -921,7 +921,7 @@ function initAudio(){
     masterGain = AC.createGain(); masterGain.gain.value = .5 * volLevel + .1; masterGain.connect(AC.destination);
     musicGain = AC.createGain(); musicGain.gain.value = .85 * volLevel; musicGain.connect(AC.destination);
     /* mesin */
-    engOsc = AC.createOscillator(); engOsc.type = 'sawtooth'; engOsc.frequency.value = 50;
+    engOsc = AC.createOscillator(); engOsc.type = 'triangle'; engOsc.frequency.value = 50;
     engOsc2 = AC.createOscillator(); engOsc2.type = 'sine'; engOsc2.frequency.value = 25;
     engFilter = AC.createBiquadFilter(); engFilter.type = 'lowpass'; engFilter.frequency.value = 500; engFilter.Q.value = 2;
     engGain = AC.createGain(); engGain.gain.value = 0;
@@ -930,6 +930,7 @@ function initAudio(){
     /* angin */
     const nb = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
     const nd = nb.getChannelData(0); for(let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const NF = 4000; for(let i = 0; i < NF; i++){ const t = i / NF; nd[i] = nd[i] * t + nd[nd.length - NF + i] * (1 - t); } /* loop mulus, tanpa klik */
     const wind = AC.createBufferSource(); wind.buffer = nb; wind.loop = true;
     const wf = AC.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 600; wf.Q.value = .6;
     windGain = AC.createGain(); windGain.gain.value = 0;
@@ -982,22 +983,7 @@ function startBeat(){
     o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + .24);
   }
   const roots = [55, 55, 65.41, 49];
-  setInterval(() => {
-    if(!AC || !G.started) return;
-    while(nextT < AC.currentTime + .25){
-      const s = step % 8, bar = Math.floor(step / 8) % 4;
-      if(G.mode === 'nature' || G.mode === 'stunt'){
-        if(s === 0 || s === 4) thump(nextT, 95, .3, .18);
-        /* tak dihapus: bunyi gletek */
-        if(s === 0) bass(nextT, roots[bar]);
-      } else {
-        if(s === 0 || s === 3 || s === 6) thump(nextT, 110, .34, .16); /* dang */
-        /* tak dihapus: bunyi gletek */
-        if(s === 0 || s === 4) bass(nextT, roots[bar] * (s === 4 ? 1.335 : 1));
-      }
-      nextT += spb(); step++;
-    }
-  }, 110);
+  setInterval(() => { /* beat dimatikan atas permintaan Juragan (bunyi ketukan/gletek) */ }, 110);
 }
 function crashSfx(){
   if(!AC) return;
