@@ -205,31 +205,92 @@ function sfxHurt(){
   g.gain.setValueAtTime(.4, t); g.gain.exponentialRampToValueAtTime(.001, t + .22);
   o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .24);
 }
-/* Musik latar prosedural: bass + arpeggio minor heroik, volume kecil */
-const BGM_NOTES = [110, 110, 130.8, 110, 98, 98, 146.8, 164.8];
-let bgmStep = 0;
+/* MUSIK TEGANG: sequencer drum perang + bass berdenyut, intensitas adaptif */
+let musicIntensity = 0, bgmStep = 0, heartIn = 0;
+const BASS_LINE = [55, 0, 55, 55, 0, 65.4, 0, 55, 0, 55, 0, 49, 0, 73.4, 0, 82.4];
+function drumKick(t, vol){
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(128, t); o.frequency.exponentialRampToValueAtTime(40, t + .13);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .16);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .17);
+}
+function drumTom(t, freq, vol){
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * .52, t + .18);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .2);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .21);
+  const src = AC.createBufferSource(); src.buffer = noiseBuf(.05);
+  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+  const g2 = AC.createGain(); g2.gain.setValueAtTime(vol * .4, t); g2.gain.exponentialRampToValueAtTime(.001, t + .05);
+  src.connect(f); f.connect(g2); g2.connect(masterGain); src.start(t);
+}
+function drumHat(t, vol){
+  const src = AC.createBufferSource(); src.buffer = noiseBuf(.03);
+  const f = AC.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6500;
+  const g = AC.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .03);
+  src.connect(f); f.connect(g); g.connect(masterGain); src.start(t);
+}
+function bassPulse(t, freq, vol){
+  const o = AC.createOscillator(), g = AC.createGain(), f = AC.createBiquadFilter();
+  o.type = 'sawtooth'; o.frequency.value = freq; f.type = 'lowpass'; f.frequency.value = 320;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .19);
+  o.connect(f); f.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .2);
+}
+function stabChord(t){
+  [220, 233.08, 110].forEach(fr => {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sawtooth'; o.frequency.value = fr;
+    g.gain.setValueAtTime(.045, t); g.gain.exponentialRampToValueAtTime(.001, t + .34);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .35);
+  });
+}
 function bgmTick(){
   if(!AC || !soundOn) return;
-  const t = AC.currentTime, n = BGM_NOTES[bgmStep % BGM_NOTES.length];
-  const o = AC.createOscillator(), g = AC.createGain();
-  o.type = 'triangle'; o.frequency.value = n;
-  g.gain.setValueAtTime(.05, t); g.gain.exponentialRampToValueAtTime(.001, t + .24);
-  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + .25);
-  if(bgmStep % 2 === 0){
-    const o2 = AC.createOscillator(), g2 = AC.createGain();
-    o2.type = 'sine'; o2.frequency.value = n * 3;
-    g2.gain.setValueAtTime(.018, t); g2.gain.exponentialRampToValueAtTime(.001, t + .3);
-    o2.connect(g2); g2.connect(masterGain); o2.start(t); o2.stop(t + .3);
+  const t = AC.currentTime, s = bgmStep % 16, inten = musicIntensity;
+  const m = inten === 0 ? .45 : 1;
+  if(s % 4 === 0) drumKick(t, .5 * m);
+  if(inten >= 2 && s % 4 === 2) drumKick(t, .32);
+  if(inten >= 1){
+    if(s === 2 || s === 10) drumTom(t, 148, .22);
+    if(s === 7) drumTom(t, 196, .2);
+    if(s === 14) drumTom(t, 118, .24);
+    if(s % 2 === 1) drumHat(t, .045);
+    const bn = BASS_LINE[s]; if(bn) bassPulse(t, bn, .15);
   }
-  if(bgmStep % 4 === 2){
-    const src = AC.createBufferSource(); src.buffer = noiseBuf(.05);
-    const f = AC.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3000;
-    const g3 = AC.createGain(); g3.gain.setValueAtTime(.03, t); g3.gain.exponentialRampToValueAtTime(.001, t + .05);
-    src.connect(f); f.connect(g3); g3.connect(masterGain); src.start(t);
+  if(inten >= 2){
+    if(s === 5 || s === 13) drumTom(t, 235, .15);
+    if(s === 4 && (Math.floor(bgmStep / 16) % 2 === 0)) stabChord(t);
   }
   bgmStep++;
 }
-function bgmStart(){ if(bgmTimer) return; bgmTimer = setInterval(bgmTick, 265); }
+function sfxAlarm(){
+  if(!AC || !soundOn) return;
+  const t = AC.currentTime;
+  for(let i = 0; i < 2; i++){
+    const o = AC.createOscillator(), g = AC.createGain(), f = AC.createBiquadFilter();
+    o.type = 'square'; const st = t + i * .55;
+    o.frequency.setValueAtTime(620, st);
+    o.frequency.linearRampToValueAtTime(940, st + .24);
+    o.frequency.linearRampToValueAtTime(620, st + .48);
+    f.type = 'bandpass'; f.frequency.value = 800; f.Q.value = 1.4;
+    g.gain.setValueAtTime(.0001, st); g.gain.exponentialRampToValueAtTime(.055, st + .05);
+    g.gain.exponentialRampToValueAtTime(.001, st + .5);
+    o.connect(f); f.connect(g); g.connect(masterGain); o.start(st); o.stop(st + .52);
+  }
+}
+function sfxHeart(){
+  if(!AC || !soundOn) return;
+  const t = AC.currentTime;
+  [0, .24].forEach((off, i) => {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(84, t + off);
+    o.frequency.exponentialRampToValueAtTime(38, t + off + .13);
+    g.gain.setValueAtTime(i === 0 ? .55 : .38, t + off);
+    g.gain.exponentialRampToValueAtTime(.001, t + off + .15);
+    o.connect(g); g.connect(masterGain); o.start(t + off); o.stop(t + off + .16);
+  });
+}
+function bgmStart(){ if(bgmTimer) return; bgmTimer = setInterval(bgmTick, 110); }
 function bgmStop(){ clearInterval(bgmTimer); bgmTimer = null; }
 </script>
 
@@ -307,7 +368,7 @@ function spawnFoe(kind){
 }
 function startWave(w){
   G.wave = w; G.spawnQueue = waveComp(w); G.spawnIn = .5;
-  banner(`🌊 WAVE ${w}${w === 10 ? ' — SERANGAN TERAKHIR!' : ''}`); sfxHorn(); updateHUD();
+  banner(`🌊 WAVE ${w}${w === 10 ? ' — SERANGAN TERAKHIR!' : ''}`); sfxHorn(); sfxAlarm(); updateHUD();
 }
 
 /* ================= COMBAT ================= */
@@ -429,6 +490,10 @@ cv.addEventListener('touchstart', onTap, { passive: false });
 /* ================= UPDATE ================= */
 function update(dt){
   G.time += dt;
+  musicIntensity = G.mode !== 'play' ? 0 : (G.hp <= 35 || foes.length >= 6 ? 2 : 1);
+  if(G.mode === 'play' && !G.over && G.hp <= 30 && G.hp > 0){
+    heartIn -= dt; if(heartIn <= 0){ sfxHeart(); heartIn = .95; }
+  }
   tapCd = Math.max(0, tapCd - dt);
   // clouds & jets
   for(const c of clouds){ c.x += c.v * dt; if(c.x - 90 * c.s > W) c.x = -90 * c.s; }
