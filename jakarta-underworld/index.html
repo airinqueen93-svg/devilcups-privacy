@@ -392,13 +392,13 @@ const roadTex = canvasTex(256, 64, (g, w, h) => {
 });
 roadTex.wrapS = THREE.RepeatWrapping; roadTex.repeat.set(10, 1);
 const roadMat = new THREE.MeshPhongMaterial({ map: roadTex, shininess: 110, specular: 0x55688a });
-const road1 = new THREE.Mesh(new THREE.PlaneGeometry(150, 10), roadMat);
+const road1 = new THREE.Mesh(new THREE.PlaneGeometry(150, 16), roadMat);
 road1.rotation.x = -Math.PI / 2; road1.position.set(0, .01, 2); road1.receiveShadow = true; scene.add(road1);
-const road2 = new THREE.Mesh(new THREE.PlaneGeometry(9, 96), roadMat.clone());
+const road2 = new THREE.Mesh(new THREE.PlaneGeometry(13, 96), roadMat.clone());
 road2.material.map = roadTex.clone(); road2.material.map.needsUpdate = true; road2.material.map.rotation = Math.PI / 2; road2.material.map.repeat.set(8, 1);
 road2.rotation.x = -Math.PI / 2; road2.rotation.z = Math.PI / 2; road2.position.set(18, .01, 0); road2.receiveShadow = true; scene.add(road2);
 const walkMat = new THREE.MeshLambertMaterial({ color: 0x3d4149 });
-box(150, .14, 2.2, walkMat, 0, .07, -3.8); box(150, .14, 2.2, walkMat, 0, .07, 7.8);
+box(150, .14, 2.2, walkMat, 0, .07, -7.4); box(150, .14, 2.2, walkMat, 0, .07, 11.4);
 /* genangan memantulkan cahaya */
 const puddleMat = new THREE.MeshPhongMaterial({ color: 0x0d1420, shininess: 160, specular: 0xaFC4e8, transparent: true, opacity: .92 });
 for(let i = 0; i < 30; i++){
@@ -493,7 +493,7 @@ function streetLamp(x, z, flip){
   pool.rotation.x = -Math.PI / 2; pool.position.set(flip ? -1.2 : 1.2, .04, 0); g.add(pool);
   g.position.set(x, 0, z); scene.add(g);
 }
-for(let x = -66; x <= 66; x += 16.5){ streetLamp(x, -3.4, false); streetLamp(x + 8, 7.4, true); }
+for(let x = -66; x <= 66; x += 16.5){ streetLamp(x, -6.8, false); streetLamp(x + 8, 10.8, true); }
 for(let z = -38; z <= 38; z += 19){ streetLamp(13.2, z, false); streetLamp(22.8, z + 9, true); }
 /* tiang listrik + kabel */
 function powerPole(x, z){
@@ -503,7 +503,7 @@ function powerPole(x, z){
   g.position.set(x, 0, z); scene.add(g); return g;
 }
 const poleTops = [];
-for(let x = -64; x <= 64; x += 16){ powerPole(x, -5.2); poleTops.push(new THREE.Vector3(x, 6.6, -5.2)); }
+for(let x = -64; x <= 64; x += 16){ powerPole(x, -7.6); poleTops.push(new THREE.Vector3(x, 6.6, -7.6)); }
 const cableMat = new THREE.LineBasicMaterial({ color: 0x05070a });
 for(let i = 0; i < poleTops.length - 1; i++){
   const a = poleTops[i], b = poleTops[i + 1], pts = [];
@@ -582,7 +582,7 @@ const extraColliders = [];
 function xCol(x, z, w, d){ extraColliders.push([x, z, w / 2 + .45, d / 2 + .45]); }
 /* jalan tol selatan + gerbang tol */
 const hwTex = roadTex.clone(); hwTex.repeat.set(34, 1); hwTex.needsUpdate = true;
-const highway = new THREE.Mesh(new THREE.PlaneGeometry(430, 18),
+const highway = new THREE.Mesh(new THREE.PlaneGeometry(430, 22),
   new THREE.MeshPhongMaterial({ map: hwTex, shininess: 110, specular: 0x55688a }));
 highway.rotation.x = -Math.PI / 2; highway.position.set(0, .012, 62); highway.receiveShadow = true; scene.add(highway);
 const connTex = roadTex.clone(); connTex.repeat.set(4, 1); connTex.needsUpdate = true;
@@ -1079,7 +1079,7 @@ for(let i = 0; i < 12; i++){
   const c = CIV_COLORS[i % CIV_COLORS.length];
   const civ = mkActor({ uniform: c, uniformD: 0x2c2f36, skin: [0xb98a64, 0x8a5f3d, 0xd9a37e][i % 3],
     hijab: i % 5 === 4 ? 0x7a4a8f : 0, female: i % 5 === 4, hair: 0x191410, hp: 40, speed: rnd(1.2, 1.9) },
-    rnd(-60, 60), Math.random() < .5 ? rnd(-6, -4) : rnd(9, 12), 'civ', 'Warga');
+    rnd(-60, 60), Math.random() < .5 ? rnd(-8.2, -6.4) : rnd(10.6, 12.6), 'civ', 'Warga');
   civ.home = civ.group.position.clone();
   peds.push(civ);
 }
@@ -1102,14 +1102,15 @@ const streetCar = buildCar('sedan', 0x3a6ea8); streetCar.group.position.set(14, 
 const motor1 = buildMotor(); motor1.group.position.set(-35, 0, 21.5); motor1.heading = .9;
 const motor2 = buildMotor(); motor2.group.position.set(10, 0, 13); motor2.heading = 2.6; motor2.owned = false;
 const trafficDefs = [
-  ['angkot', 0x1c6ea8, -40, -.6], ['sedan', 0xb5893c, 30, 4.6], ['angkot', 0x2f9e44, 55, -.6], ['sedan', 0x8a8f99, -15, 4.6],
+  ['angkot', 0x1c6ea8, -40, -1.5], ['sedan', 0xb5893c, 30, 5.5], ['angkot', 0x2f9e44, 55, -1.5], ['sedan', 0x8a8f99, -15, 5.5],
+  ['sedan', 0xc2255c, 5, 5.5], ['sport', 0x5a2d82, -25, -1.5], ['angkot', 0xd98a1f, 45, 5.5],
 ];
 const trafficCars = trafficDefs.map(([ty, col, x, z], i) => {
   const c = buildCar(ty, col); c.group.position.set(x, 0, z);
   c.traffic = true; c.wp = i % 2; c.heading = i % 2 ? -Math.PI / 2 : Math.PI / 2;
   c.lane = z; return c;
 });
-const trafficLoop = [[62, 4.6], [62, -.6], [-62, -.6], [-62, 4.6]];
+const trafficLoop = [[62, 5.5], [62, -1.5], [-62, -1.5], [-62, 5.5]];
 /* warga distrik baru */
 [ [138, 4], [158, 12], [168, 2], [146, 14], [-40, -82], [-12, -90], [22, -82], [48, -90], [-150, 2], [-136, -12] ].forEach(([x, z], i) => {
   const c = CIV_COLORS[(i + 3) % CIV_COLORS.length];
@@ -1137,6 +1138,43 @@ function makePillar(x, z, color){
 }
 const motorPillar = makePillar(-20, -3.2, 0x22d3ee);
 const tokoPillar = makePillar(30, 11.5, 0xffd43b);
+/* lalu lintas ekstra: 2 motor kota + 2 mobil Jakarta Modern */
+for(let i = 0; i < 2; i++){
+  const m = buildMotor();
+  m.group.position.set(i ? 20 : -30, 0, i ? 5.5 : -1.5);
+  m.traffic = true; m.wp = i ? 0 : 2; m.heading = i ? Math.PI / 2 : -Math.PI / 2; m.owned = false;
+  trafficCars.push(m);
+}
+const modernLoop = [[196, 10.5], [196, 5], [104, 5], [104, 10.5]];
+[['sedan', 0x74c0fc, 120, 10.5], ['sport', 0xe8590c, 175, 5]].forEach(([ty, col, x, z], i) => {
+  const c = buildCar(ty, col); c.group.position.set(x, 0, z);
+  c.traffic = true; c.loop = modernLoop; c.wp = i * 2; c.heading = i ? -Math.PI / 2 : Math.PI / 2;
+  trafficCars.push(c);
+});
+/* arus jalan tol: 4 mobil ngebut dua arah */
+const hwyCars = [];
+[[1, 57.5, -120, 0x3a6ea8], [1, 57.5, 40, 0xb5893c], [-1, 66.5, 100, 0x8a8f99], [-1, 66.5, -60, 0xc2255c]].forEach(([dir, z, x, col]) => {
+  const c = buildCar('sedan', col);
+  c.group.position.set(x, 0, z);
+  c.heading = dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+  c.group.rotation.y = c.heading - Math.PI / 2;
+  c.hwyDir = dir; c.hwySpeed = rnd(15, 20);
+  hwyCars.push(c);
+});
+function updateHighway(dt){
+  for(const c of hwyCars){
+    if(c.driver) continue;
+    let sp = c.hwySpeed;
+    const aheadX = c.group.position.x + c.hwyDir * 7;
+    if(G.driving && Math.abs(G.driving.group.position.z - c.group.position.z) < 2.5 &&
+       Math.abs(G.driving.group.position.x - aheadX) < 5) sp = 0;
+    c.speed += clamp(sp - c.speed, -dt * 16, dt * 7);
+    c.group.position.x += c.hwyDir * c.speed * dt;
+    if(c.group.position.x > 214) c.group.position.x = -214;
+    if(c.group.position.x < -214) c.group.position.x = 214;
+    for(const w of c.wheels) w.rotation.z -= c.speed * dt / .34;
+  }
+}
 let policeCars = [];
 function spawnPolice(){
   const c = buildCar('polisi', 0xe8ecf2);
@@ -1389,7 +1427,7 @@ function refreshCtx(){
   if(G.driving){ btnCar.textContent = '🚪 KELUAR'; btnCar.classList.add('show'); nearCtx = { type: 'exit' }; return; }
   // kendaraan terdekat
   let bc = null, bd = 3.4;
-  for(const c of cars){ if(c.driver) continue; const d = Math.hypot(c.group.position.x - P.group.position.x, c.group.position.z - P.group.position.z); if(d < bd){ bd = d; bc = c; } }
+  for(const c of cars){ if(c.driver || c.hwyDir || policeCars.includes(c)) continue; const d = Math.hypot(c.group.position.x - P.group.position.x, c.group.position.z - P.group.position.z); if(d < bd){ bd = d; bc = c; } }
   if(bc){ btnCar.textContent = bc.type === 'motor' ? '🏍️ NAIK MOTOR' : '🚗 MASUK MOBIL'; btnCar.classList.add('show'); nearCtx = { type: 'enter', target: bc }; return; }
   nearCtx = null;
   const dMarkas = Math.hypot(markasPos.x - P.group.position.x, (markasPos.z - 4) - P.group.position.z);
@@ -1824,13 +1862,14 @@ function updateNPCs(dt, t){
 }
 function updateTraffic(dt){
   for(const c of trafficCars){
-    const wp = trafficLoop[c.wp];
+    if(c.driver) continue;
+    const wp = (c.loop || trafficLoop)[c.wp];
     const dx = wp[0] - c.group.position.x, dz = wp[1] - c.group.position.z;
     const d = Math.hypot(dx, dz);
-    if(d < 4){ c.wp = (c.wp + 1) % trafficLoop.length; continue; }
+    if(d < 4){ c.wp = (c.wp + 1) % (c.loop || trafficLoop).length; continue; }
     const want = Math.atan2(dx, dz);
     c.heading = angLerp(c.heading, want, dt * 2);
-    let targetSpeed = 8.5, blocked = false;
+    let targetSpeed = 10.5, blocked = false;
     const fx = c.group.position.x + Math.sin(c.heading) * 4, fz = c.group.position.z + Math.cos(c.heading) * 4;
     if(Math.hypot(P.group.position.x - fx, P.group.position.z - fz) < 2.4 && !G.driving) blocked = true;
     if(G.driving && Math.hypot(G.driving.group.position.x - fx, G.driving.group.position.z - fz) < 3) blocked = true;
@@ -1899,7 +1938,7 @@ function animate(){
     turfCheck(); escapeCheck(); updateSide(dt);
   }
   updateNPCs(dt, t);
-  updateTraffic(dt);
+  updateTraffic(dt); updateHighway(dt);
   if(G.mode === 'play') updatePolice(dt);
   for(const a of actors) stepHuman(a, dt, t);
   for(let i = hitFx.length - 1; i >= 0; i--){
