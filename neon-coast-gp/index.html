@@ -305,12 +305,12 @@ const cloudMat = new THREE.SpriteMaterial({ map: canvasTex((x, w, h) => { const 
 const clouds = [];
 for (let i = 0; i < 14; i++){
   const sp = new THREE.Sprite(cloudMat);
-  sp.position.set((Math.random() - .5) * 2400, 190 + Math.random() * 160, Math.random() * 3400 - 200);
+  sp.position.set((Math.random() - .5) * 2400, 190 + Math.random() * 160, Math.random() * 5200 - 200);
   const sc = 200 + Math.random() * 260; sp.scale.set(sc, sc * .42, 1);
   scene.add(sp); clouds.push(sp);
 }
 /* ============ TREK PANTAI ============ */
-const TRACK_LEN = 3200, NSEG = 300, ROAD_W = 15;
+const TRACK_LEN = 5000, NSEG = 420, ROAD_W = 15;
 const CX = [], CY = [], CZ = [], CH = [];
 {
   let x = 0, z = 0, hd = 0;
@@ -395,7 +395,7 @@ function offsetRibbon(latA, latB, yOff, mat){
 const seaMat = new THREE.MeshPhongMaterial({ map: seaTex, color: 0x9fd4ff, shininess: 90, specular: 0x99ccff });
 scene.add(offsetRibbon(-(ROAD_W / 2 + 12), -(ROAD_W / 2 + 700), -2.4, seaMat));
 /* bukit kanan jauh */
-for (let i = 0; i < 9; i++){
+for (let i = 0; i < 14; i++){
   const hill = new THREE.Mesh(new THREE.ConeGeometry(190 + Math.random() * 160, 130 + Math.random() * 130, 7), new THREE.MeshLambertMaterial({ color: [0x5d7d43, 0x4e6d38, 0x688551][i % 3] }));
   const c = trackAt(200 + i * 360);
   hill.position.set(c.x + 330 + Math.random() * 160, c.y + 16, c.z + (Math.random() - .5) * 200);
@@ -745,6 +745,7 @@ function applyMode(key){
   scene.background.set(m.fog);
   sun.color.set(m.sun); sun.intensity = m.sunI;
   sun.position.set(m.sunPos[0], m.sunPos[1], m.sunPos[2]);
+  sun.userData.dir = new THREE.Vector3(m.sunPos[0], m.sunPos[1], m.sunPos[2]).normalize();
   hemi.intensity = m.hemiI; hemi.color.set(m.hemiC);
   renderer.toneMappingExposure = m.exp;
   lampHeadMat.emissive.setRGB(m.lamp * 1, m.lamp * .78, m.lamp * .45);
@@ -1078,6 +1079,8 @@ function frame(){
       engGain.gain.value = .028 + ratio * .075;
     } else engGain.gain.value = .012;
   }
+  skyDome.position.x = camera.position.x; skyDome.position.z = camera.position.z;
+  if (sun.userData.dir){ const d = sun.userData.dir; sunSpr.position.set(camera.position.x + d.x * 2100, d.y * 2100 + 30, camera.position.z + d.z * 2100); }
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(frame);
