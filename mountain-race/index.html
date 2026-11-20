@@ -26,6 +26,9 @@
   .bikeCard .bn { font-size:12.5px; font-weight:1000; }
   .bikeCard .bs { font-size:10.5px; opacity:.85; line-height:1.35; }
   .bikeCard .bp { font-size:11.5px; font-weight:900; color:#ffd93b; }
+  .langRow { display:flex; gap:8px; margin-top:10px; }
+  .langBtn { border:2px solid #d9a45b; background:rgba(24,14,6,.72); color:#fff; font-weight:1000; font-size:13.5px; border-radius:99px; padding:6px 14px; cursor:pointer; }
+  .langBtn.sel { background:#ffb03a; color:#3a1c05; }
   #coinRow { font-size:14px; font-weight:900; color:#ffd93b; margin-top:10px; text-shadow:0 2px 5px #000; }
   #volRow { display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; font-weight:800; }
   #volRow input { width:130px; accent-color:#ffb03a; }
@@ -69,16 +72,17 @@
 
 <div id="menu" class="scr">
   <h1 class="logo">MOUNTAIN<br><b>RACE</b></h1>
-  <p class="tag">🌄 REAL WORLD — Balap trail di gunung beneran:<br>Bromo • Merapi • Dieng • Rinjani. Kiri jurang, kanan tebing!</p>
+  <p class="tag" id="tagMain">🌄 REAL WORLD — Balap trail di gunung beneran:<br>Bromo • Merapi • Dieng • Rinjani. Kiri jurang, kanan tebing!</p>
   <div id="coinRow">🪙 0 koin</div>
+  <div class="langRow"><button class="langBtn" id="langId">🇮🇩 Indonesia</button><button class="langBtn" id="langEn">🇬🇧 English</button></div>
   <button class="modeBtn" data-mode="up" style="background:linear-gradient(#ff9a3d,#d35400);">⛰️ MODE NAIK GUNUNG<small>Start dari desa, finish di PUNCAK. 8 pembalap, jalan sempit!</small></button>
   <button class="modeBtn" data-mode="down" style="background:linear-gradient(#4dabf7,#2456c9);">🏍️ MODE TURUN GUNUNG<small>Turunan curam, tikungan 180°, rem jangan blong!</small></button>
   <button class="modeBtn" data-mode="fog" style="background:linear-gradient(#868e96,#495057);">🌫️ MODE KABUT<small>Jarak pandang 5 meter! Modal lampu + feeling. Paling horor!</small></button>
   <button class="modeBtn" data-mode="storm" style="background:linear-gradient(#5f27c9,#3b1470);">⛈️ MODE HUJAN BADAI<small>Petir + jalan lumpur licin. Motor gampang selip!</small></button>
   <button class="modeBtn" data-mode="survival" style="background:linear-gradient(#2f9e44,#1b5e20);">⛽ MODE SURVIVAL<small>Bensin terbatas! Mampir WARUNG buat isi bensin + servis.</small></button>
-  <div id="garage"><h3>🏍️ GARASI — pilih motor tempurmu</h3><div class="bikeRow" id="bikeRow"></div></div>
-  <div id="volRow">🔊 Suara: <input type="range" id="volSlider" min="0" max="100" value="70"> <span id="volVal">70%</span></div>
-  <p class="tag" style="font-size:11.5px; opacity:.85;">Kontrol: ◀ ▶ belok • GAS tahan buat ngegas • NITRO buat wheelie boost 🔥<br>Ngebut di pinggir jurang = bar NYALI naik = poin & kecepatan bonus!</p>
+  <div id="garage"><h3 id="garageH">🏍️ GARASI — pilih motor tempurmu</h3><div class="bikeRow" id="bikeRow"></div></div>
+  <div id="volRow">🔊 <span id="volLbl">Suara:</span> <input type="range" id="volSlider" min="0" max="100" value="70"> <span id="volVal">70%</span></div>
+  <p class="tag" id="hintTag" style="font-size:11.5px; opacity:.85;">Kontrol: ◀ ▶ belok • GAS tahan buat ngegas • NITRO buat wheelie boost 🔥<br>Ngebut di pinggir jurang = bar NYALI naik = poin & kecepatan bonus!</p>
 </div>
 
 <div id="hud">
@@ -128,19 +132,53 @@ const BIKES = [
 let SAVE = { coins: 0, owned: [true, false, false], bike: 0 };
 try { const s = JSON.parse(localStorage.getItem('mr1') || 'null'); if(s && s.coins !== undefined) SAVE = s; } catch(e) {}
 function saveGame(){ try { localStorage.setItem('mr1', JSON.stringify(SAVE)); } catch(e) {} }
+let LANG = 'id';
+try { LANG = localStorage.getItem('mr_lang') || 'id'; } catch(e) {}
+const STR = {
+  id: { tag:'🌄 REAL WORLD — Balap trail di gunung beneran:<br>Bromo • Merapi • Dieng • Rinjani. Kiri jurang, kanan tebing!',
+    modes:{ up:['⛰️ MODE NAIK GUNUNG','Start dari desa, finish di PUNCAK. 8 pembalap, jalan sempit!'], down:['🏍️ MODE TURUN GUNUNG','Turunan curam, tikungan 180°, rem jangan blong!'], fog:['🌫️ MODE KABUT','Jarak pandang 5 meter! Modal lampu + feeling. Paling horor!'], storm:['⛈️ MODE HUJAN BADAI','Petir + jalan lumpur licin. Motor gampang selip!'], survival:['⛽ MODE SURVIVAL','Bensin terbatas! Mampir WARUNG buat isi bensin + servis.'] },
+    garageH:'🏍️ GARASI — pilih motor tempurmu', vol:'Suara:', hint:'Kontrol: ◀ ▶ belok • GAS tahan buat ngegas • NITRO buat wheelie boost 🔥<br>Ngebut di pinggir jurang = bar NYALI naik = poin & kecepatan bonus!',
+    coins:'koin', equipped:'DIPAKAI ✅', select:'PILIH', top:'Top', coins_low:'🪙 Koin kurang! Menang balapan dulu',
+    fall:'😱 JATUH KE JURANG!', crash:'💥 NABRAK!', bumped:' NYENGGOL KAMU!', boost:'🔥 NYALI PENUH! BOOST! 🔥',
+    refuel:'⛽ Isi bensin di WARUNG...', fuel_empty:'⛽ BENSIN HABIS! Melipir ke WARUNG (sisi kanan jalan)!',
+    nyali:'🔥 NYALI 🔥', fuel:'⛽ BENSIN', position:'POSISI', kmh:'km/jam',
+    champ:'🏆 JUARA GUNUNG!', podium:'🎉 PODIUM!', finish_pos:'🏁 FINISH POSISI ', nyali_pts:'🔥 Poin NYALI', coins_got:'🪙 Koin didapat', your_time:'⏱️ Waktumu', you:' (KAMU)', sec:' dtk',
+    again:'🔁 BALAP LAGI', menubtn:'🏠 MENU UTAMA' },
+  en: { tag:'🌄 REAL WORLD — Real mountain trail racing:<br>Bromo • Merapi • Dieng • Rinjani. Cliff on the left, rock wall on the right!',
+    modes:{ up:['⛰️ UPHILL MODE','Start at the village, finish at the SUMMIT. 8 riders, narrow road!'], down:['🏍️ DOWNHILL MODE','Steep descent, 180° hairpins — watch your brakes!'], fog:['🌫️ FOG MODE','Visibility: 5 meters! Headlight + instinct only. Pure horror!'], storm:['⛈️ STORM MODE','Lightning + slippery mud. Bikes slide everywhere!'], survival:['⛽ SURVIVAL MODE','Limited fuel! Stop at a WARUNG roadside stall to refuel + repair.'] },
+    garageH:'🏍️ GARAGE — pick your battle bike', vol:'Sound:', hint:'Controls: ◀ ▶ steer • hold GAS to ride • NITRO for a wheelie boost 🔥<br>Speeding along the cliff edge fills the GUTS meter = bonus points & speed!',
+    coins:'coins', equipped:'EQUIPPED ✅', select:'SELECT', top:'Top', coins_low:'🪙 Not enough coins! Win races first',
+    fall:'😱 YOU FELL OFF THE CLIFF!', crash:'💥 CRASH!', bumped:' BUMPED YOU!', boost:'🔥 GUTS FULL! BOOST! 🔥',
+    refuel:'⛽ Refueling at the WARUNG...', fuel_empty:'⛽ OUT OF FUEL! Pull over to a WARUNG (right side of the road)!',
+    nyali:'🔥 GUTS 🔥', fuel:'⛽ FUEL', position:'POSITION', kmh:'km/h',
+    champ:'🏆 MOUNTAIN CHAMPION!', podium:'🎉 PODIUM FINISH!', finish_pos:'🏁 FINISHED P', nyali_pts:'🔥 GUTS points', coins_got:'🪙 Coins earned', your_time:'⏱️ Your time', you:' (YOU)', sec:' s',
+    again:'🔁 RACE AGAIN', menubtn:'🏠 MAIN MENU' }
+};
+function T(k){ return STR[LANG][k]; }
+function applyLang(){
+  document.querySelectorAll('.langBtn').forEach(b => b.classList.remove('sel'));
+  $(LANG === 'en' ? 'langEn' : 'langId').classList.add('sel');
+  $('tagMain').innerHTML = T('tag');
+  document.querySelectorAll('.modeBtn').forEach(b => { const m = STR[LANG].modes[b.dataset.mode]; b.innerHTML = m[0] + '<small>' + m[1] + '</small>'; });
+  $('garageH').textContent = T('garageH'); $('volLbl').textContent = T('vol'); $('hintTag').innerHTML = T('hint');
+  $('posSub').textContent = T('position'); $('spdSub').textContent = T('kmh');
+  $('nyaliLbl').textContent = T('nyali'); $('fuelLbl').textContent = T('fuel');
+  $('btnAgain').textContent = T('again'); $('btnMenu').textContent = T('menubtn');
+  renderGarage();
+}
 function renderGarage(){
-  $('coinRow').textContent = '🪙 ' + SAVE.coins.toLocaleString('id-ID') + ' koin';
+  $('coinRow').textContent = '🪙 ' + SAVE.coins.toLocaleString(LANG === 'en' ? 'en-US' : 'id-ID') + ' ' + T('coins');
   const row = $('bikeRow'); row.innerHTML = '';
   BIKES.forEach((b, i) => {
     const d = document.createElement('div');
     d.className = 'bikeCard' + (SAVE.bike === i ? ' sel' : '');
-    d.innerHTML = '<div class="bn">🏍️ ' + b.name + '</div><div class="bs">' + b.cc + ' • Top ' + Math.round(b.top * 3.6) + ' km/j<br>Gas ' + b.acc + '</div>'
-      + (SAVE.owned[i] ? '<div class="bp">' + (SAVE.bike === i ? 'DIPAKAI ✅' : 'PILIH') + '</div>' : '<div class="bp">🪙 ' + b.price.toLocaleString('id-ID') + '</div>');
+    d.innerHTML = '<div class="bn">🏍️ ' + b.name + '</div><div class="bs">' + b.cc + ' • ' + T('top') + ' ' + Math.round(b.top * 3.6) + ' km/h<br>Gas ' + b.acc + '</div>'
+      + (SAVE.owned[i] ? '<div class="bp">' + (SAVE.bike === i ? T('equipped') : T('select')) + '</div>' : '<div class="bp">🪙 ' + b.price.toLocaleString('id-ID') + '</div>');
     d.addEventListener('click', () => {
       initAudio();
       if(SAVE.owned[i]){ SAVE.bike = i; }
       else if(SAVE.coins >= b.price){ SAVE.coins -= b.price; SAVE.owned[i] = true; SAVE.bike = i; beep(880, 1320, .15, .12, 'sine'); }
-      else { toastMsg('🪙 Koin kurang! Menang balapan dulu'); }
+      else { toastMsg(T('coins_low')); }
       saveGame(); renderGarage();
     });
     row.appendChild(d);
@@ -383,9 +421,9 @@ let waterfall;
 const ROCKS = [];
 {
   const rockMat = new THREE.MeshLambertMaterial({ color: 0x77644e });
-  for(let i = 0; i < 15; i++){
+  for(let i = 0; i < 11; i++){
     const s = TRACK_LEN * (.08 + .9 * Math.random()), c = trackAt(s);
-    const lat = (Math.random() * 1.1 - .55), px = Math.cos(c.h), pz = -Math.sin(c.h);
+    const lat = (Math.random() < .5 ? -1 : 1) * (.18 + Math.random() * .42), px = Math.cos(c.h), pz = -Math.sin(c.h);
     const r = new THREE.Mesh(new THREE.DodecahedronGeometry(.8 + Math.random() * .5), rockMat);
     r.position.set(c.x + px * lat * ROAD_W / 2, c.y + .5, c.z + pz * lat * ROAD_W / 2);
     r.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(r);
@@ -518,7 +556,7 @@ function makeRacers(){
     const r = {
       def, i, vis: buildBike(def, bikeCol), isPlayer: !!def.player,
       u: -Math.floor(i / 2) * 4.5 - 2, lat: (i % 2 ? .42 : -.42), speed: 0,
-      crashT: 0, fin: false, finTime: 0, phase: Math.random() * 7, wheelie: 0, bumpCd: 0, steerVis: 0, sliding: 0,
+      crashT: 0, ghostT: 0, fin: false, finTime: 0, phase: Math.random() * 7, wheelie: 0, bumpCd: 0, steerVis: 0, sliding: 0,
     };
     racers.push(r);
     if(r.isPlayer) player = r;
@@ -573,7 +611,7 @@ function placeRacer(r, dt){
 function doCrash(r, fall){
   if(r.crashT > 0) return;
   r.crashT = 1.5; r.speed = Math.min(r.speed, 3);
-  if(r.isPlayer){ camShake = fall ? 1.4 : .9; slowmo = .3; setTimeout(() => slowmo = 1, 700); beep(160, 40, .5, .3, 'sawtooth'); $('warn').textContent = fall ? '😱 JATUH KE JURANG!' : '💥 NABRAK!'; setTimeout(() => $('warn').textContent = '', 1500); }
+  if(r.isPlayer){ camShake = fall ? 1.4 : .9; slowmo = .3; setTimeout(() => slowmo = 1, 700); beep(160, 40, .5, .3, 'sawtooth'); $('warn').textContent = fall ? T('fall') : T('crash'); setTimeout(() => $('warn').textContent = '', 1500); }
 }
 function step(dt){
   dt = clamp(dt, 0, .05) * slowmo;
@@ -594,7 +632,7 @@ function step(dt){
     if(r.crashT > 0){
       r.crashT -= dt;
       r.vis.grp.rotation.z = Math.sin(r.crashT * 10) * .9 * r.crashT;
-      if(r.crashT <= 0){ r.vis.grp.rotation.z = 0; r.u = Math.max(2, r.u - 12); r.lat = clamp(r.lat, -.5, .5); }
+      if(r.crashT <= 0){ r.vis.grp.rotation.z = 0; r.u = Math.max(2, r.u - 12); r.lat = clamp(r.lat, -.5, .5); r.ghostT = 1.6; }
       placeRacer(r, dt); return;
     }
     let top, acc;
@@ -621,7 +659,7 @@ function step(dt){
         if(o === r || o.fin) return;
         if(Math.abs(o.u - r.u) < 2.4 && Math.abs(o.lat - r.lat) < .34){
           r.speed = Math.min(r.speed, o.speed + 2); camShake = Math.max(camShake, .35); beep(200, 90, .15, .2, 'square');
-          if(o.def.aggro && o.u < r.u && o.bumpCd <= 0){ r.lat += (r.lat > o.lat ? .3 : -.3); o.bumpCd = 3; $('warn').textContent = '😤 ' + o.def.name + ' NYENGGOL KAMU!'; setTimeout(() => $('warn').textContent = '', 1300); }
+          if(o.def.aggro && o.u < r.u && o.bumpCd <= 0){ r.lat += (r.lat > o.lat ? .3 : -.3); o.bumpCd = 3; $('warn').textContent = '😤 ' + o.def.name + T('bumped'); setTimeout(() => $('warn').textContent = '', 1300); }
         }
       });
       racers.forEach(o => { if(o.bumpCd > 0) o.bumpCd -= dt; });
@@ -630,7 +668,7 @@ function step(dt){
         nyali = Math.min(100, nyali + dt * 20); score += dt * r.speed * 1.6;
         if(Math.random() < dt * 8) spawnDustAt(r, true);
       } else if(!nyaliBoost) nyali = Math.max(0, nyali - dt * 9);
-      if(nyali >= 100 && !nyaliBoost){ nyaliBoost = true; $('warn').textContent = '🔥 NYALI PENUH! BOOST! 🔥'; setTimeout(() => $('warn').textContent = '', 1300); beep(660, 1180, .3, .14, 'sine'); }
+      if(nyali >= 100 && !nyaliBoost){ nyaliBoost = true; $('warn').textContent = T('boost'); setTimeout(() => $('warn').textContent = '', 1300); beep(660, 1180, .3, .14, 'sine'); }
       if(nyaliBoost){ nyali -= dt * 26; score += dt * 30; if(nyali <= 0){ nyali = 0; nyaliBoost = false; } }
       score += dt * r.speed * .4;
       /* bensin survival */
@@ -641,8 +679,8 @@ function step(dt){
           const wu = dirSign > 0 ? ws : TRACK_LEN - ws;
           if(Math.abs(r.u - wu) < 17 && r.lat > .45) refuel = true;
         });
-        if(refuel && fuel < 100){ fuel = Math.min(100, fuel + dt * 42); if(Math.random() < dt * 2) $('warn').textContent = '⛽ Isi bensin di WARUNG...'; }
-        if(fuel <= 0) $('warn').textContent = '⛽ BENSIN HABIS! Melipir ke WARUNG (sisi kanan jalan)!';
+        if(refuel && fuel < 100){ fuel = Math.min(100, fuel + dt * 42); if(Math.random() < dt * 2) $('warn').textContent = T('refuel'); }
+        if(fuel <= 0) $('warn').textContent = T('fuel_empty');
       }
     } else {
       /* AI */
@@ -659,12 +697,15 @@ function step(dt){
     }
     r.u += r.speed * dt;
     /* batu */
-    for(const rk of ROCKS_U){
-      if(Math.abs(r.u - rk.u) < 2.1 && Math.abs(r.lat - rk.lat) < .3){ doCrash(r, false); break; }
+    if(r.ghostT > 0) r.ghostT -= dt;
+    else {
+      for(const rk of ROCKS_U){
+        if(Math.abs(r.u - rk.u) < 2.1 && Math.abs(r.lat - rk.lat) < .3){ doCrash(r, false); break; }
+      }
+      /* tepi jurang & tebing */
+      if(r.lat < -1.52) doCrash(r, true);
+      else if(r.lat > 1.52) doCrash(r, false);
     }
-    /* tepi jurang & tebing */
-    if(r.lat < -1.52) doCrash(r, true);
-    else if(r.lat > 1.52) doCrash(r, false);
     r.lat = clamp(r.lat, -1.7, 1.7);
     /* debu */
     if(r.speed > 7 && Math.random() < dt * (Math.abs(r.lat) > 1 ? 26 : 9)) spawnDustAt(r, Math.abs(r.lat) > 1);
@@ -700,8 +741,12 @@ function spawnDustAt(r, big){
   spawnDust(bx, p.y + .3, bz, big);
 }
 function autoSteer(r){
-  const target = Math.sin(raceTime * .8) * .4;
-  return clamp((r.lat - target) * 1.4, -1, 1) * (grip < 1 ? .8 : 1);
+  let target = Math.sin(raceTime * .8) * .35;
+  for(const rk of ROCKS_U){
+    const du = rk.u - r.u;
+    if(du > 2 && du < 30) target = rk.lat > 0 ? -.62 : .62;
+  }
+  return clamp((r.lat - target) * 1.6, -1, 1) * (grip < 1 ? .8 : 1);
 }
 function livePlace(){
   const sorted = racers.slice().sort((a, b) => (b.fin ? 1e9 - b.finTime : b.u) - (a.fin ? 1e9 - a.finTime : a.u));
@@ -766,12 +811,12 @@ function endRace(){
   raceCoins = baseCoins + Math.round(score / 12);
   SAVE.coins += raceCoins; saveGame();
   const rows = finOrder.concat(racers.filter(r => !r.fin).sort((a, b) => b.u - a.u)).map((r, i) =>
-    '<div class="rrow"><span>' + (i + 1) + '. ' + r.def.emoji + ' ' + r.def.name + (r.isPlayer ? ' (KAMU)' : '') + '</span><span>' + (r.fin ? r.finTime.toFixed(1) + ' dtk' : 'DNF') + '</span></div>').join('');
-  $('resTitle').textContent = place === 1 ? '🏆 JUARA GUNUNG!' : place <= 3 ? '🎉 PODIUM!' : '🏁 FINISH POSISI ' + place;
+    '<div class="rrow"><span>' + (i + 1) + '. ' + r.def.emoji + ' ' + r.def.name + (r.isPlayer ? T('you') : '') + '</span><span>' + (r.fin ? r.finTime.toFixed(1) + T('sec') : 'DNF') + '</span></div>').join('');
+  $('resTitle').textContent = place === 1 ? T('champ') : place <= 3 ? T('podium') : T('finish_pos') + place;
   $('resRows').innerHTML = rows
-    + '<div class="rrow"><span>🔥 Poin NYALI</span><span>' + Math.round(score) + '</span></div>'
-    + '<div class="rrow"><span>🪙 Koin didapat</span><span>+' + raceCoins + '</span></div>'
-    + '<div class="rrow"><span>⏱️ Waktumu</span><span>' + player.finTime.toFixed(1) + ' dtk</span></div>';
+    + '<div class="rrow"><span>' + T('nyali_pts') + '</span><span>' + Math.round(score) + '</span></div>'
+    + '<div class="rrow"><span>' + T('coins_got') + '</span><span>+' + raceCoins + '</span></div>'
+    + '<div class="rrow"><span>' + T('your_time') + '</span><span>' + player.finTime.toFixed(1) + T('sec') + '</span></div>';
   setTimeout(() => { $('hud').style.display = 'none'; $('touch').style.display = 'none'; $('resScr').style.display = 'flex'; if(engGain) engGain.gain.value = .012; }, 1100);
   if(AUTO) document.title = 'AUTODONE place=' + place + ' time=' + player.finTime.toFixed(1) + ' coins=' + raceCoins;
 }
@@ -779,6 +824,8 @@ function endRace(){
 /* ================= UI & KONTROL ================= */
 RIDER_DEFS.forEach((d, i) => d.emoji = ['😎','🧔','😌','👩','🧓','🤪','😤','👱‍♀️'][i]);
 document.querySelectorAll('.modeBtn').forEach(b => b.addEventListener('click', () => { initAudio(); startRace(b.dataset.mode); }));
+$('langId').addEventListener('click', () => { LANG = 'id'; try { localStorage.setItem('mr_lang', 'id'); } catch(e) {} applyLang(); });
+$('langEn').addEventListener('click', () => { LANG = 'en'; try { localStorage.setItem('mr_lang', 'en'); } catch(e) {} applyLang(); });
 $('btnAgain').addEventListener('click', () => startRace(MODE));
 $('btnMenu').addEventListener('click', () => {
   raceState = 'menu'; $('resScr').style.display = 'none'; $('menu').style.display = 'flex';
@@ -816,7 +863,7 @@ addEventListener('keyup', e => {
 });
 
 /* ================= BOOT & LOOP ================= */
-renderGarage();
+applyLang();
 applyMode();
 makeRacers();
 racers.forEach(r => placeRacer(r, 0));
