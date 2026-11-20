@@ -378,8 +378,8 @@ function doMove(gi){
     if(extra){ G.phase = 'roll'; $('diceLbl').innerHTML = '🎉 <b>' + PLAYERS[pl].name + '</b> jalan lagi!<br>Tap dadu!'; renderAll(); maybeBot(); }
     else nextTurn();
   };
-  if(pw.pos === -1) stepOnce();
-  else { const iv = setInterval(() => { pw.pos++; sHop(); renderAll(); if(pw.pos >= pwStart + dice){ clearInterval(iv); afterMove(); } }, 120); }
+  if(pw.pos === -1){ pw.pos = 0; sHop(); renderAll(); afterMove(); }
+  else { pw.pos = pwStart + dice; sHop(); renderAll(); afterMove(); }
 }
 function nextTurn(){
   if(G.over) return;
@@ -750,6 +750,8 @@ document.querySelectorAll('.lionImg').forEach(im => { im.src = window.LUDO_LION;
   .pawn, .pawn.movable, .corner.turn .avatar { animation:none !important; }
   #boardWrap:after { display:none !important; }
   #sparks { display:none !important; }
+  .pod .pCrown, .pod .pAv, .pod .pStand { animation:none !important; }
+  .confetti { display:none !important; }
 </style>
 </body>
 </html>
