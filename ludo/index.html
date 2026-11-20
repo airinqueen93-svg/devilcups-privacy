@@ -745,5 +745,11 @@ $('btnPodWA').addEventListener('click', () => {
 'use strict';
 document.querySelectorAll('.lionImg').forEach(im => { im.src = window.LUDO_LION; });
 </script>
+<style>
+  /* ===== ANTI-LAG (permintaan Balung): pion diam, tanpa animasi idle ===== */
+  .pawn, .pawn.movable, .corner.turn .avatar { animation:none !important; }
+  #boardWrap:after { display:none !important; }
+  #sparks { display:none !important; }
+</style>
 </body>
 </html>
