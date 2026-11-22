@@ -84,14 +84,15 @@
 <div id="menu" class="scr">
   <div style="font-size:52px;">🎲</div>
   <h1>LUDO <b>DEVILCUPS</b></h1>
-  <p class="sub">Ludo versi keren: balapan 4 pion ke rumah! Tabrak pion lawan biar balik ke kandang 😈<br>Dapet angka 6 = jalan lagi. Yang semua pionnya pulang duluan, MENANG 🏆</p>
+  <p class="sub" id="tagline">Ludo versi keren: balapan 4 pion ke rumah! Tabrak pion lawan biar balik ke kandang 😈<br>Dapet angka 6 = jalan lagi. Yang semua pionnya pulang duluan, MENANG 🏆</p>
+  <button class="modeBtn" id="btnLang" style="background:linear-gradient(#6c5ce7,#4834d4); width:auto; padding:9px 20px; font-size:14.5px;">🌐 Bahasa: INDONESIA</button>
   <button class="modeBtn" id="btnAI">MAIN SENDIRI (1P vs 3 BOT)</button>
   <button class="modeBtn" id="btnParty">👥 MAIN BARENG DI HP INI</button>
-  <div class="cntRow"><span>Jumlah pemain:</span>
+  <div class="cntRow"><span id="cntLabel">Jumlah pemain:</span>
     <button class="cntBtn" data-n="2">2</button><button class="cntBtn" data-n="3">3</button><button class="cntBtn sel" data-n="4">4</button>
   </div>
   <div id="photoSec">
-    <div class="photoTitle">📸 FOTO PEMAIN — tap foto buat ganti pakai foto masing-masing</div>
+    <div class="photoTitle" id="photoTitle">📸 FOTO PEMAIN — tap foto buat ganti pakai foto masing-masing</div>
     <div id="photoRow"></div>
     <button id="photoReset">↺ Balikin ke foto bawaan</button>
     <input type="file" id="photoInput" accept="image/*" style="display:none;">
@@ -101,18 +102,18 @@
   <div id="onlinePanel" style="display:none;">
     <button class="modeBtn" id="btnHost" style="background:linear-gradient(#ffa94d,#e8590c);">🔑 BUAT ROOM</button>
     <div id="hostBox" style="display:none;">
-      <div style="font-size:13px; font-weight:800;">KODE ROOM KAMU:</div>
+      <div style="font-size:13px; font-weight:800;" id="hostCodeLbl">KODE ROOM KAMU:</div>
       <div id="roomCode">----</div>
       <div id="hostStatus" style="font-size:13px;">Menyiapkan room...</div>
       <button class="modeBtn" id="btnShareCode" style="background:linear-gradient(#51cf66,#1e9e4a);">📲 KIRIM KODE KE WHATSAPP</button>
       <div id="lobbyList" style="font-size:13px; font-weight:800; margin-top:6px;">Pemain masuk: 1/4 — kasih kode room ini ke temanmu</div>
       <button class="modeBtn" id="btnStartRoom" style="background:linear-gradient(#ffd43b,#f08c00); color:#241a00; display:none;">▶️ MULAI MAIN</button>
     </div>
-    <div style="margin:10px 0 4px; font-weight:800; font-size:13.5px;">— atau gabung room teman —</div>
+    <div style="margin:10px 0 4px; font-weight:800; font-size:13.5px;" id="joinDiv">— atau gabung room teman —</div>
     <div id="joinRow"><input id="joinCode" type="tel" inputmode="numeric" maxlength="4" placeholder="Kode 4 angka"><button class="modeBtn" id="btnJoin" style="background:linear-gradient(#3a86ff,#2456c9);">🚪 GABUNG</button></div>
     <div id="netStatus"></div>
   </div>
-  <p class="sub" style="font-size:12px; opacity:.75;">Buat main bareng teman di HP masing-masing: kirim link game-nya lewat WhatsApp, temanmu buka & main juga. Kalau lagi kumpul, mode MAIN BARENG bisa gantian 1 HP 👥</p>
+  <p class="sub" id="onlineHelp" style="font-size:12px; opacity:.75;">Buat main bareng teman di HP masing-masing: kirim link game-nya lewat WhatsApp, temanmu buka & main juga. Kalau lagi kumpul, mode MAIN BARENG bisa gantian 1 HP 👥</p>
 </div>
 <div id="gameScr">
   <div id="hudTop">
@@ -144,7 +145,7 @@
 <div id="sparks"></div>
 <div id="podiumScr">
   <div style="font-size:44px;">🏆</div>
-  <h1 style="font-size:27px;">PODIUM <b>JUARA</b></h1>
+  <h1 style="font-size:27px;" id="podTitle">PODIUM <b>JUARA</b></h1>
   <div id="podiumRow"></div>
   <div id="podiumRest"></div>
   <button class="modeBtn" id="btnAgain" style="background:linear-gradient(#ff6b6b,#d43d2a);">🔁 MAIN LAGI</button>
@@ -237,7 +238,7 @@ function renderPhotoRow(){
 let pickIdx = 0;
 function pickPhoto(i){
   pickIdx = i; initAudio(); beep(700, 990, .07, .09, 'sine');
-  toast('📸 Pilih foto buat pemain ' + PLAYERS[i].name);
+  toast(tt('photoPick').replace('{n}', PLAYERS[i].name));
   $('photoInput').click();
 }
 loadPhotos();
@@ -252,9 +253,9 @@ $('photoInput').addEventListener('change', e => {
       const x = cv.getContext('2d'); const s = Math.min(img.width, img.height);
       x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
       setPhoto(pickIdx, cv.toDataURL('image/jpeg', .85));
-      toast('✅ Foto ' + PLAYERS[pickIdx].name + ' diganti!');
+      toast(tt('photoChanged').replace('{n}', PLAYERS[pickIdx].name));
     };
-    img.onerror = () => toast('⚠️ Gambarnya gagal dibuka — coba foto lain');
+    img.onerror = () => toast(tt('photoFail'));
     img.src = rd.result;
   };
   rd.readAsDataURL(f);
@@ -262,7 +263,7 @@ $('photoInput').addEventListener('change', e => {
 $('photoReset').addEventListener('click', () => {
   for(let i = 0; i < 4; i++) PHOTOS[i] = defaultPhoto(i);
   savePhotos(); renderPhotoRow(); refreshAvatars();
-  toast('↺ Foto balik ke bawaan');
+  toast(tt('photoResetDone'));
 });
 renderPhotoRow();
 
@@ -443,8 +444,8 @@ function newGame(humans){ /* humans: array bool per index pemain yang ikut (sesu
   if(n === 2) G.order = [0, 2]; /* 2 pemain: merah vs kuning (seberang) */
   G.order.forEach((pl, k) => {
     G.isBot[pl] = humans[k] === 'bot';
-    G.names[pl] = humans[k] === 'bot' ? 'BOT' : (G.order.length > 1 && humans.filter(x => x === 'human').length > 1 ? 'Pemain ' + (k + 1) : 'KAMU');
-    if(!G.isBot[pl] && G.order.filter(x => !G.isBot[x]).length === 1) G.names[pl] = 'KAMU';
+    G.names[pl] = humans[k] === 'bot' ? tt('bot') : (G.order.length > 1 && humans.filter(x => x === 'human').length > 1 ? tt('player') + (k + 1) : tt('you'));
+    if(!G.isBot[pl] && G.order.filter(x => !G.isBot[x]).length === 1) G.names[pl] = tt('you');
     for(let i = 0; i < 4; i++) G.pawns.push({ pl, idx: i, pos: -1 });
   });
   G.turn = G.order[0];
@@ -475,10 +476,10 @@ function finishRoll(forced){
   if(!forced && window.ONLINE && G.turn === window.MYIDX) netSend({ t:'dice', v: G.dice });
   const pl = G.turn;
   if(G.dice === 6) G.sixStreak++; else G.sixStreak = 0;
-  if(G.sixStreak >= 3){ toast('🎲 Tiga kali 6 beruntun — hangus! 😅'); G.sixStreak = 0; return setTimeout(nextTurn, 900); }
+  if(G.sixStreak >= 3){ toast(tt('threeSix')); G.sixStreak = 0; return setTimeout(nextTurn, 900); }
   G.movable = movablePawns(pl, G.dice);
   G.phase = 'move';
-  $('diceLbl').innerHTML = '<b>' + PLAYERS[pl].name + '</b> dapet <b>' + G.dice + '</b>' + (G.movable.length ? '<br>Tap pion yang nyala!' : '<br>Gak ada yang bisa jalan 😢');
+  $('diceLbl').innerHTML = '<b>' + PLAYERS[pl].name + '</b>' + tt('got') + '<b>' + G.dice + '</b>' + (G.movable.length ? tt('tapPawn') : tt('noMove'));
   renderAll();
   if(!G.movable.length) return setTimeout(nextTurn, 1000);
   if(G.isBot[pl]) setTimeout(botMove, rnd(650, 1100));
@@ -512,18 +513,18 @@ function doMove(gi){
         }
       }
     }
-    if(captured){ sCapture(); boomFx(pl, pw.pos); toast('💥 ' + PLAYERS[pl].name + ' nabrak pion lawan! Balik kandang! 😈'); extra = true; }
-    if(pw.pos === FINISH){ sHome(); toast('🏠 Satu pion ' + PLAYERS[pl].name + ' PULANG!'); extra = true; }
+    if(captured){ sCapture(); boomFx(pl, pw.pos); toast('💥 ' + PLAYERS[pl].name + tt('capture')); extra = true; }
+    if(pw.pos === FINISH){ sHome(); toast(tt('pawnHome') + PLAYERS[pl].name + tt('pawnHome2')); extra = true; }
     renderAll();
     /* menang? */
     if(G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length === 4){
       G.over = true; G.winner = pl; sWin(); confetti(); renderAll();
-      toast('🏆 ' + PLAYERS[pl].name + ' MENANG!', 3500);
+      toast('🏆 ' + PLAYERS[pl].name + tt('wins'), 3500);
       setTimeout(showPodium, 1400);
       return;
     }
     G.busy = false;
-    if(extra){ G.phase = 'roll'; $('diceLbl').innerHTML = '🎉 <b>' + PLAYERS[pl].name + '</b> jalan lagi!<br>Tap dadu!'; renderAll(); maybeBot(); }
+    if(extra){ G.phase = 'roll'; $('diceLbl').innerHTML = '🎉 <b>' + PLAYERS[pl].name + '</b>' + tt('rollAgain'); renderAll(); maybeBot(); }
     else nextTurn();
   };
   if(pw.pos === -1){ pw.pos = 0; sHop(); renderAll(); afterMove(); }
@@ -534,7 +535,7 @@ function nextTurn(){
   const i = G.order.indexOf(G.turn);
   G.turn = G.order[(i + 1) % G.order.length];
   G.phase = 'roll'; G.movable = []; G.sixStreak = 0;
-  $('diceLbl').innerHTML = 'Giliran <b>' + PLAYERS[G.turn].name + '</b><br>Tap dadu!';
+  $('diceLbl').innerHTML = tt('turnOf') + '<b>' + PLAYERS[G.turn].name + '</b><br>' + tt('tapDice');
   sTurn(); renderAll(); maybeBot();
 }
 function maybeBot(){
@@ -612,7 +613,7 @@ $('dice').addEventListener('click', () => { if(G && !G.isBot[G.turn] && (!window
 $('sndBtn').addEventListener('click', () => { sndOn = !sndOn; $('sndBtn').textContent = sndOn ? '🔊' : '🔇'; });
 const GAME_URL = 'https://airinqueen93-svg.github.io/devilcups-privacy/ludo/';
 $('btnWA').addEventListener('click', () => {
-  const txt = encodeURIComponent('🎲 Ayo main LUDO DEVILCUPS bareng aku! Tap link ini buat main di HP kamu: ' + GAME_URL + ' — balapan pion, tabrak-tabrakan, yang kalah traktir kopi! 😆🏆');
+  const txt = encodeURIComponent(tt('shareMenu') + GAME_URL + tt('shareMenu2'));
   window.open('https://wa.me/?text=' + txt, '_blank');
 });
 
@@ -623,15 +624,15 @@ $('callBtn').addEventListener('click', () => {
   callMode = !callMode;
   const b = $('callBtn');
   if(callMode){
-    b.textContent = '📞 Mode Telponan WA: NYALA'; b.classList.add('on');
+    b.textContent = tt('callOn'); b.classList.add('on');
     if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
     if(masterGain) masterGain.gain.value = 0;
-    toast('📞 Mode telponan NYALA! Suara game mati — telponan WA tetap jernih. Kirim link game ke temanmu, kalian main sambil ngobrol!', 3400);
+    toast(tt('callOnToast'), 3400);
   } else {
-    b.textContent = '📞 Mode Telponan WA: MATI'; b.classList.remove('on');
+    b.textContent = tt('callOff'); b.classList.remove('on');
     if(masterGain) masterGain.gain.value = sndOn ? .5 : 0;
     if(sndOn && AC && !musicTimer) startMusic();
-    toast('📞 Mode telponan mati — suara game nyala lagi');
+    toast(tt('callOffToast'));
   }
 });
 
@@ -639,7 +640,7 @@ $('callBtn').addEventListener('click', () => {
 function showSharedPodium(r){
   const byName = n => PLAYERS.find(p => p.name === n) || PLAYERS[0];
   const row = $('podiumRow'); row.innerHTML = '';
-  const heights = [118, 82, 58], medals = ['#ffd94d', '#e8edf2', '#eda75f'], nums = ['1', '2', '3'];
+  const heights = [118, 82, 58], medalTop = ['#ffe14d', '#ffffff', '#ffb066'], medalBot = ['#e6a800', '#8d9bab', '#c25e10'], nums = ['1', '2', '3'];
   const visual = r.length >= 3 ? [r[1], r[0], r[2]] : r.slice();
   visual.forEach(item => {
     const place = r.indexOf(item);
@@ -648,21 +649,21 @@ function showSharedPodium(r){
     d.innerHTML = (place === 0 ? '<div class="pCrown">👑</div>' : '<div style="height:30px;"></div>')
       + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + photoFor(PLAYERS.indexOf(P)) + '"></div>'
       + '<div class="pName">' + P.emoji + ' ' + item.name + '</div>'
-      + '<div class="pFin">🏠 ' + item.fin + '/4 pulang</div>'
-      + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medals[place] + ', ' + medals[place] + 'cc);">' + nums[place] + '</div>';
+      + '<div class="pFin">🏠 ' + item.fin + '/4' + tt('home') + '</div>'
+      + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medalTop[place] + ', ' + medalBot[place] + ');box-shadow:inset 0 3px 0 rgba(255,255,255,.65), inset 0 -8px 12px rgba(0,0,0,.25), 0 6px 14px rgba(0,0,0,.45);">' + nums[place] + '</div>';
     row.appendChild(d);
   });
   const rest = $('podiumRest');
-  rest.innerHTML = r.length > 3 ? ('4️⃣ ' + byName(r[3].name).emoji + ' ' + r[3].name + ' — 🏠 ' + r[3].fin + '/4 pulang') : '';
+  rest.innerHTML = r.length > 3 ? ('4️⃣ ' + byName(r[3].name).emoji + ' ' + r[3].name + ' — 🏠 ' + r[3].fin + '/4' + tt('home')) : '';
   document.querySelector('#podiumScr h1').innerHTML = '🏆 ' + r[0].name + ' <b>JUARA!</b>';
   $('menu').style.display = 'none'; $('gameScr').style.display = 'none';
   $('podiumScr').style.display = 'flex';
   const ba = $('btnAgain'), nb = ba.cloneNode(true);
-  nb.textContent = '🎮 MAIN JUGA';
+  nb.textContent = tt('playToo');
   ba.replaceWith(nb);
   nb.addEventListener('click', () => { location.href = location.pathname; });
   $('btnPodWA').style.display = 'none';
-  toast('🏆 Ini podium yang dibagikan temanmu! Berani lawan? Tap MAIN JUGA!', 3200);
+  toast(tt('sharedPodium'), 3200);
 }
 (function(){
   const q = new URLSearchParams(location.search);
@@ -692,7 +693,7 @@ function cleanupNet(){
 }
 function fixOnlineNames(){
   if(!G) return;
-  G.order.forEach(pl => { G.names[pl] = pl === window.MYIDX ? 'KAMU' : 'TEMAN'; });
+  G.order.forEach(pl => { G.names[pl] = pl === window.MYIDX ? tt('you') : tt('friend'); });
   renderAll();
 }
 function startOnlineGame(){
@@ -705,12 +706,12 @@ function startOnlineGame(){
   sendMyPhoto();
   $('chatBtn').style.display = 'block';
   $('voiceBtn').style.display = 'block';
-  toast('🌐 Main online ' + ONLINE_COUNT + ' orang! Kamu ' + PLAYERS[window.MYIDX].emoji + ' ' + PLAYERS[window.MYIDX].name + (window.MYIDX === 0 ? ' — mulai duluan!' : ' — MERAH jalan duluan'), 2600);
+  toast(tt('onlineGo') + ONLINE_COUNT + tt('people') + PLAYERS[window.MYIDX].emoji + ' ' + PLAYERS[window.MYIDX].name + (window.MYIDX === 0 ? tt('youFirst') : ' — ' + PLAYERS[0].name + tt('goesFirst')), 2600);
 }
 function seatToBot(idx){
   if(!G || G.over || idx === window.MYIDX || G.isBot[idx]) return;
-  G.isBot[idx] = true; G.names[idx] = 'BOT';
-  toast('🤖 Pemain ' + PLAYERS[idx].name + ' keluar — kursinya diganti BOT', 2600);
+  G.isBot[idx] = true; G.names[idx] = tt('bot');
+  toast(tt('leftBot').replace('{n}', PLAYERS[idx].name), 2600);
   renderAll();
   if(G.turn === idx){
     if(G.phase === 'roll') maybeBot();
@@ -720,9 +721,9 @@ function seatToBot(idx){
 function onNetData(m){
   if(!m || !m.t) return;
   if(m.t === 'start'){ if(m.roster) PEERIDS = m.roster; startOnlineGame(); }
-  else if(m.t === 'seat'){ window.MYIDX = m.idx; ONLINE_COUNT = m.count; $('netStatus').textContent = '✅ Kamu dapet kursi ' + PLAYERS[m.idx].emoji + ' ' + PLAYERS[m.idx].name + ' — tunggu host pencet MULAI...'; }
-  else if(m.t === 'full'){ $('netStatus').textContent = '⚠️ Room penuh (maks 4 orang) — coba room lain'; }
-  else if(m.t === 'started'){ $('netStatus').textContent = '⚠️ Room ini udah mulai main — telat, minta kode room baru'; }
+  else if(m.t === 'seat'){ window.MYIDX = m.idx; ONLINE_COUNT = m.count; $('netStatus').textContent = tt('gotSeat') + PLAYERS[m.idx].emoji + ' ' + PLAYERS[m.idx].name + tt('waitHost2'); }
+  else if(m.t === 'full'){ $('netStatus').textContent = tt('roomFull'); }
+  else if(m.t === 'started'){ $('netStatus').textContent = tt('roomStarted'); }
   else if(m.t === 'dice'){ if(G && !G.over){ drawDice(m.v); finishRoll(m.v); } }
   else if(m.t === 'move'){ if(G && !G.over) doMove(m.pawn); }
   else if(m.t === 'again'){ if(!isHost){ toast('🔁 Host ngajak main lagi!'); startOnlineGame(); } }
@@ -731,13 +732,13 @@ function onNetData(m){
   else if(m.t === 'left'){ seatToBot(m.idx); }
   else if(m.t === 'bye'){
     if(isHost){ if(m._from != null){ netSend({ t:'left', idx: m._from }); seatToBot(m._from); } }
-    else { toast('👋 Host keluar — room bubar'); cleanupNet(); $('gameScr').style.display = 'none'; $('podiumScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; }
+    else { toast(tt('hostLeft')); cleanupNet(); $('gameScr').style.display = 'none'; $('podiumScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; }
   }
 }
 function setupConn(c){
   if(!isHost) netConn = c;
   c.on('open', () => {
-    if(!isHost) $('netStatus').textContent = '✅ Terhubung! Tunggu host pencet MULAI...';
+    if(!isHost) $('netStatus').textContent = tt('waitHost');
     sendMyPhoto();
   });
   c.on('data', m => {
@@ -750,7 +751,7 @@ function setupConn(c){
   });
   c.on('close', () => {
     if(isHost) guestLeft(c);
-    else if(window.ONLINE){ toast('📴 Koneksi ke host putus — room bubar'); cleanupNet(); $('gameScr').style.display = 'none'; $('podiumScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; }
+    else if(window.ONLINE){ toast(tt('connLost')); cleanupNet(); $('gameScr').style.display = 'none'; $('podiumScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; }
   });
 }
 function guestLeft(c){
@@ -760,7 +761,7 @@ function guestLeft(c){
 }
 function updateLobby(){
   const n = guestConns.filter(c => c.open).length;
-  const el = $('lobbyList'); if(el) el.textContent = 'Pemain masuk: ' + (1 + n) + '/4' + (n ? ' — pencet MULAI kalau udah cukup' : ' — kasih kode room ini ke temanmu');
+  const el = $('lobbyList'); if(el) el.textContent = tt('playersIn') + (1 + n) + '/4' + (n ? tt('lobbyGo') : tt('lobbyWait'));
   const b = $('btnStartRoom'); if(b) b.style.display = n >= 1 && !window.ONLINE ? 'block' : 'none';
 }
 function hostStart(){
@@ -775,7 +776,7 @@ function hostStart(){
   startOnlineGame();
 }
 function peerReady(){
-  if(typeof Peer === 'undefined'){ toast('🌐 Mode online butuh internet — tunggu sebentar / cek koneksimu, terus coba lagi', 2600); return false; }
+  if(typeof Peer === 'undefined'){ toast(tt('needNet'), 2600); return false; }
   return true;
 }
 $('btnOnline').addEventListener('click', () => { initAudio(); const p = $('onlinePanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; });
@@ -786,28 +787,28 @@ $('btnHost').addEventListener('click', () => {
   const code = String(1000 + Math.floor(Math.random() * 9000));
   $('hostBox').style.display = 'block';
   $('roomCode').textContent = code;
-  $('hostStatus').textContent = '⏳ Menyiapkan room...';
+  $('hostStatus').textContent = tt('preparing');
   try {
     peer = new Peer('devilcups-ludo-' + code);
     wireVoice(peer);
-    peer.on('open', () => { $('hostStatus').textContent = '🟢 Room siap! Kasih kode ini ke temanmu, tunggu dia gabung...'; updateLobby(); });
+    peer.on('open', () => { $('hostStatus').textContent = tt('roomReady'); updateLobby(); });
     peer.on('connection', c => {
       c.on('open', () => {
         if(window.ONLINE){ try { c.send({ t:'started' }); } catch(e) {} setTimeout(() => { try { c.close(); } catch(e) {} }, 400); return; }
         if(guestConns.filter(x => x.open).length >= 3){ try { c.send({ t:'full' }); } catch(e) {} setTimeout(() => { try { c.close(); } catch(e) {} }, 400); return; }
         guestConns.push(c);
         setupConn(c);
-        $('hostStatus').textContent = '🟢 Room siap! ' + guestConns.filter(x => x.open).length + ' teman udah masuk';
+        $('hostStatus').textContent = '🟢 ' + tt('roomReadyShort') + guestConns.filter(x => x.open).length + tt('friendsIn');
         updateLobby();
       });
     });
-    peer.on('error', e => { $('hostStatus').textContent = '⚠️ Gangguan koneksi (' + e.type + ') — coba BUAT ROOM lagi'; });
-  } catch(e) { $('hostStatus').textContent = '⚠️ Gagal bikin room — cek internetmu'; }
+    peer.on('error', e => { $('hostStatus').textContent = tt('connGlitch') + e.type + tt('glitchHost'); });
+  } catch(e) { $('hostStatus').textContent = tt('failRoom'); }
 });
 $('btnStartRoom').addEventListener('click', () => { initAudio(); hostStart(); });
 $('btnShareCode').addEventListener('click', () => {
   const code = $('roomCode').textContent;
-  const txt = encodeURIComponent('🎲 Main LUDO DEVILCUPS ONLINE bareng aku! Buka ' + GAME_URL + ' tap MAIN ONLINE → GABUNG ROOM → masukin kode: ' + code + ' — kita main di 1 papan! 🏆');
+  const txt = encodeURIComponent(tt('shareCode1') + GAME_URL + tt('shareCode2') + code + tt('shareCode3'));
   window.open('https://wa.me/?text=' + txt, '_blank');
 });
 $('btnJoin').addEventListener('click', () => {
@@ -821,8 +822,8 @@ $('btnJoin').addEventListener('click', () => {
     peer = new Peer();
     wireVoice(peer);
     peer.on('open', () => { setupConn(peer.connect('devilcups-ludo-' + code, { reliable: true })); });
-    peer.on('error', e => { $('netStatus').textContent = e.type === 'peer-unavailable' ? '⚠️ Room nggak ketemu — cek lagi kodenya, atau temanmu belum bikin room' : '⚠️ Gangguan koneksi (' + e.type + ')'; });
-  } catch(e) { $('netStatus').textContent = '⚠️ Gagal nyambung — cek internetmu'; }
+    peer.on('error', e => { $('netStatus').textContent = e.type === 'peer-unavailable' ? tt('roomNotFound') : tt('connGlitch') + e.type + ')'; });
+  } catch(e) { $('netStatus').textContent = tt('failJoin'); }
 });
 /* ===== NGOBROL SUARA (voice chat PeerJS) ===== */
 let mediaCalls = {}, pendingCalls = {}, localStream = null, voiceOn = false;
@@ -843,7 +844,7 @@ function attachCall(call, seat){
     const a = document.createElement('audio'); a.autoplay = true; a.playsInline = true; a.srcObject = rs; a.style.display = 'none';
     document.body.appendChild(a); call._audio = a; if(a.play) a.play().catch(() => {});
     setVoiceUI(true);
-    toast('🎤 ' + PLAYERS[seat].name + ' gabung ngobrol!', 1800);
+    toast(tt('vJoined').replace('{n}', PLAYERS[seat].name), 1800);
   });
   call.on('close', () => { if(call._audio) call._audio.remove(); if(mediaCalls[seat] === call) delete mediaCalls[seat]; if(!anyVoice()) setVoiceUI(false); });
   call.on('error', () => { if(call._audio) call._audio.remove(); if(mediaCalls[seat] === call) delete mediaCalls[seat]; if(!anyVoice()) setVoiceUI(false); });
@@ -854,7 +855,7 @@ function wireVoice(p){
     if(seat < 0 || mediaCalls[seat]){ try { call.close(); } catch(e) {} return; }
     attachCall(call, seat);
     if(localStream) call.answer(localStream);
-    else { pendingCalls[seat] = call; $('voiceBtn').classList.add('ring'); toast('🎤 Temanmu ngajak ngobrol! Tap tombol 🎤 hijau buat gabung', 3200); }
+    else { pendingCalls[seat] = call; $('voiceBtn').classList.add('ring'); toast(tt('vInvite'), 3200); }
   });
 }
 function stopVoice(silent){
@@ -863,7 +864,7 @@ function stopVoice(silent){
   if(localStream){ try { localStream.getTracks().forEach(t => t.stop()); } catch(e) {} localStream = null; }
   setVoiceUI(false);
   const b = $('voiceBtn'); if(b) b.classList.remove('ring');
-  if(!silent) toast('🎤 Ngobrol dimatikan', 1500);
+  if(!silent) toast(tt('vOff'), 1500);
 }
 async function toggleVoice(){
   if(!window.ONLINE) return;
@@ -871,17 +872,17 @@ async function toggleVoice(){
   if(voiceOn){ stopVoice(); return; }
   try {
     if(!localStream) localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch(e){ toast('🎤 Mic-nya belum diizinkan — aktifkan izin mic buat situs ini dulu ya', 3000); return; }
+  } catch(e){ toast(tt('vMic'), 3000); return; }
   $('voiceBtn').classList.remove('ring');
   let acted = false;
   for(const seat in pendingCalls){ try { pendingCalls[seat].answer(localStream); } catch(e) {} delete pendingCalls[seat]; acted = true; }
-  if(acted){ toast('🎤 Nyambung...', 1500); return; }
-  if(!peer || !G){ toast('🎤 Belum tersambung ke teman', 2000); return; }
+  if(acted){ toast(tt('vConn'), 1500); return; }
+  if(!peer || !G){ toast(tt('vNotConn'), 2000); return; }
   G.order.forEach(pl => {
     if(pl === window.MYIDX || mediaCalls[pl]) return;
     if(window.MYIDX < pl && PEERIDS[pl]){ const call = peer.call(PEERIDS[pl], localStream); if(call){ attachCall(call, pl); acted = true; } }
   });
-  toast(acted ? '🎤 Manggil teman-temanmu... yang lain tap 🎤 juga ya' : '🎤 Kamu kursi terakhir — tunggu teman yang lain tap 🎤 duluan', 2400);
+  toast(acted ? tt('vCall') : tt('vWait'), 2400);
 }
 $('voiceBtn').addEventListener('click', toggleVoice);
 /* ===== CHAT ROOM ===== */
@@ -898,9 +899,9 @@ function addChatMsg(who, text, mine){
 function sendChat(text){
   text = (text || '').trim();
   if(!text) return;
-  if(!window.ONLINE){ toast('💬 Chat cuma jalan pas main online'); return; }
+  if(!window.ONLINE){ toast(tt('chatOnly')); return; }
   netSend({ t:'chat', text });
-  addChatMsg('KAMU', text, true);
+  addChatMsg(tt('you'), text, true);
 }
 $('chatBtn').addEventListener('click', () => {
   const p = $('chatPanel');
@@ -926,6 +927,113 @@ if(new URLSearchParams(location.search).has('netsim')){
   }, 200));
 }
 
+/* ================= 2 BAHASA (ID / EN) ================= */
+let LANG = 'id';
+try { LANG = localStorage.getItem('ludo_lang') || 'id'; } catch(e) {}
+const NAMES_ID = ['MERAH', 'HIJAU', 'KUNING', 'BIRU'], NAMES_EN = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
+const STR = {
+id: {
+  tagline:'Ludo versi keren: balapan 4 pion ke rumah! Tabrak pion lawan biar balik ke kandang 😈<br>Dapet angka 6 = jalan lagi. Yang semua pionnya pulang duluan, MENANG 🏆',
+  playSolo:'MAIN SENDIRI (1P vs 3 BOT)', playParty:'👥 MAIN BARENG DI HP INI', cntLabel:'Jumlah pemain:',
+  photoTitle:'📸 FOTO PEMAIN — tap foto buat ganti pakai foto masing-masing', photoReset:'↺ Balikin ke foto bawaan',
+  inviteWA:'📲 AJAK TEMAN LEWAT WHATSAPP', online:'🌐 MAIN ONLINE (KODE ROOM) 2–4 ORANG', host:'🔑 BUAT ROOM',
+  hostCode:'KODE ROOM KAMU:', shareCodeBtn:'📲 KIRIM KODE KE WHATSAPP', startRoom:'▶️ MULAI MAIN',
+  joinDiv:'— atau gabung room teman —', joinPh:'Kode 4 angka', join:'🚪 GABUNG',
+  onlineHelp:'Buat main bareng teman di HP masing-masing: kirim link game-nya lewat WhatsApp, temanmu buka & main juga. Kalau lagi kumpul, mode MAIN BARENG bisa gantian 1 HP 👥',
+  tapDice:'Tap dadu!', callOff:'📞 Mode Telponan WA: MATI', callOn:'📞 Mode Telponan WA: NYALA',
+  podTitle:'PODIUM <b>JUARA</b>', again:'🔁 MAIN LAGI', shareRes:'📲 BAGIKAN HASIL KE WHATSAPP', mainMenu:'🏠 MENU UTAMA',
+  chatPh:'Tulis pesan...', chatSend:'Kirim', playToo:'🎮 MAIN JUGA',
+  you:'KAMU', friend:'TEMAN', bot:'BOT', player:'Pemain ',
+  got:' dapet ', tapPawn:'<br>Tap pion yang nyala!', noMove:'<br>Gak ada yang bisa jalan 😢',
+  rollAgain:' jalan lagi!<br>Tap dadu!', turnOf:'Giliran ', threeSix:'🎲 Tiga kali 6 beruntun — hangus! 😅',
+  capture:' nabrak pion lawan! Balik kandang! 😈', pawnHome:'🏠 Satu pion ', pawnHome2:' PULANG!', wins:' MENANG!',
+  home:' pulang', sharedPodium:'🏆 Ini podium yang dibagikan temanmu! Berani lawan? Tap MAIN JUGA!',
+  leftBot:'🤖 Pemain {n} keluar — kursinya diganti BOT',
+  onlineGo:'🌐 Main online ', people:' orang! Kamu ', youFirst:' — mulai duluan!', goesFirst:' jalan duluan',
+  gotSeat:'✅ Kamu dapet kursi ', waitHost2:' — tunggu host pencet MULAI...', waitHost:'✅ Terhubung! Tunggu host pencet MULAI...',
+  roomFull:'⚠️ Room penuh (maks 4 orang) — coba room lain', roomStarted:'⚠️ Room ini udah mulai main — telat, minta kode room baru',
+  hostLeft:'👋 Host keluar — room bubar', connLost:'📴 Koneksi ke host putus — room bubar',
+  playersIn:'Pemain masuk: ', lobbyGo:' — pencet MULAI kalau udah cukup', lobbyWait:' — kasih kode room ini ke temanmu',
+  waitAgain:'⏳ Nunggu host yang pencet MAIN LAGI ya', preparing:'⏳ Menyiapkan room...',
+  roomReady:'🟢 Room siap! Kasih kode ini ke temanmu, tunggu dia gabung...', roomReadyShort:'Room siap! ', friendsIn:' teman udah masuk',
+  failRoom:'⚠️ Gagal bikin room — cek internetmu', failJoin:'⚠️ Gagal nyambung — cek internetmu',
+  connGlitch:'⚠️ Gangguan koneksi (', glitchHost:') — coba BUAT ROOM lagi', roomNotFound:'⚠️ Room nggak ketemu — cek lagi kodenya, atau temanmu belum bikin room',
+  code4:'⚠️ Kodenya harus 4 angka', connecting:'⏳ Nyambung ke room ',
+  needNet:'🌐 Mode online butuh internet — tunggu sebentar / cek koneksimu, terus coba lagi',
+  vJoined:'🎤 {n} gabung ngobrol!', vInvite:'🎤 Temanmu ngajak ngobrol! Tap tombol 🎤 hijau buat gabung',
+  vOff:'🎤 Ngobrol dimatikan', vMic:'🎤 Mic-nya belum diizinkan — aktifkan izin mic buat situs ini dulu ya',
+  vConn:'🎤 Nyambung...', vNotConn:'🎤 Belum tersambung ke teman',
+  vCall:'🎤 Manggil teman-temanmu... yang lain tap 🎤 juga ya', vWait:'🎤 Kamu kursi terakhir — tunggu teman yang lain tap 🎤 duluan',
+  callOnToast:'📞 Mode telponan NYALA! Suara game mati — telponan WA tetap jernih. Kirim link game ke temanmu, kalian main sambil ngobrol!',
+  callOffToast:'📞 Mode telponan mati — suara game nyala lagi',
+  photoPick:'📸 Pilih foto buat pemain {n}', photoChanged:'✅ Foto {n} diganti!', photoFail:'⚠️ Gambarnya gagal dibuka — coba foto lain',
+  photoResetDone:'↺ Foto balik ke bawaan', chatOnly:'💬 Chat cuma jalan pas main online',
+  shareMenu:'🎲 Ayo main LUDO DEVILCUPS bareng aku! Tap link ini buat main di HP kamu: ', shareMenu2:' — balapan pion, tabrak-tabrakan, yang kalah traktir kopi! 😆🏆',
+  shareCode1:'🎲 Main LUDO DEVILCUPS ONLINE bareng aku! Buka ', shareCode2:' tap MAIN ONLINE → GABUNG ROOM → masukin kode: ', shareCode3:' — kita main di 1 papan! 🏆',
+  sharePod1:'🏆 Aku JUARA di LUDO DEVILCUPS! Lihat podiumku di sini: ', sharePod2:' — berani lawan aku? 🎲'
+},
+en: {
+  tagline:'The cool Ludo: race your 4 pawns home! Crash into rivals to send them back to base 😈<br>Roll a 6 = roll again. First to bring all pawns home WINS 🏆',
+  playSolo:'PLAY SOLO (1P vs 3 BOTS)', playParty:'👥 PLAY TOGETHER ON THIS PHONE', cntLabel:'Players:',
+  photoTitle:'📸 PLAYER PHOTOS — tap a photo to use your own', photoReset:'↺ Reset to default photos',
+  inviteWA:'📲 INVITE FRIENDS VIA WHATSAPP', online:'🌐 PLAY ONLINE (ROOM CODE) 2–4 PLAYERS', host:'🔑 CREATE ROOM',
+  hostCode:'YOUR ROOM CODE:', shareCodeBtn:'📲 SEND CODE VIA WHATSAPP', startRoom:'▶️ START GAME',
+  joinDiv:'— or join a friend\'s room —', joinPh:'4-digit code', join:'🚪 JOIN',
+  onlineHelp:'Play with friends on their own phones: send them the game link on WhatsApp and they open it & play too. Hanging out together? PASS & PLAY mode takes turns on 1 phone 👥',
+  tapDice:'Tap the dice!', callOff:'📞 WA Call Mode: OFF', callOn:'📞 WA Call Mode: ON',
+  podTitle:'WINNERS <b>PODIUM</b>', again:'🔁 PLAY AGAIN', shareRes:'📲 SHARE RESULT VIA WHATSAPP', mainMenu:'🏠 MAIN MENU',
+  chatPh:'Type a message...', chatSend:'Send', playToo:'🎮 PLAY TOO',
+  you:'YOU', friend:'FRIEND', bot:'BOT', player:'Player ',
+  got:' rolled ', tapPawn:'<br>Tap a glowing pawn!', noMove:'<br>No pawn can move 😢',
+  rollAgain:' rolls again!<br>Tap the dice!', turnOf:'Turn: ', threeSix:'🎲 Three 6s in a row — turn burned! 😅',
+  capture:' crashed a rival pawn! Back to base! 😈', pawnHome:'🏠 A ', pawnHome2:' pawn is HOME!', wins:' WINS!',
+  home:' home', sharedPodium:'🏆 This is the podium your friend shared! Dare to challenge? Tap PLAY TOO!',
+  leftBot:'🤖 Player {n} left — a BOT takes the seat',
+  onlineGo:'🌐 Online game with ', people:' players! You are ', youFirst:' — you go first!', goesFirst:' goes first',
+  gotSeat:'✅ Your seat: ', waitHost2:' — waiting for the host to press START...', waitHost:'✅ Connected! Wait for the host to press START...',
+  roomFull:'⚠️ Room is full (max 4 players) — try another room', roomStarted:'⚠️ This room already started playing — ask for a new room code',
+  hostLeft:'👋 The host left — room closed', connLost:'📴 Connection to the host lost — room closed',
+  playersIn:'Players in: ', lobbyGo:' — press START when ready', lobbyWait:' — share this room code with your friends',
+  waitAgain:'⏳ Waiting for the host to press PLAY AGAIN', preparing:'⏳ Preparing room...',
+  roomReady:'🟢 Room ready! Give this code to your friends and wait for them to join...', roomReadyShort:'Room ready! ', friendsIn:' friend(s) in',
+  failRoom:'⚠️ Failed to create room — check your internet', failJoin:'⚠️ Failed to connect — check your internet',
+  connGlitch:'⚠️ Connection problem (', glitchHost:') — try CREATE ROOM again', roomNotFound:'⚠️ Room not found — check the code, or your friend has not created the room yet',
+  code4:'⚠️ The code must be 4 digits', connecting:'⏳ Connecting to room ',
+  needNet:'🌐 Online mode needs internet — wait a moment / check your connection, then try again',
+  vJoined:'🎤 {n} joined the voice chat!', vInvite:'🎤 Your friend wants to talk! Tap the green 🎤 button to join',
+  vOff:'🎤 Voice chat off', vMic:'🎤 Mic not allowed yet — enable mic permission for this site first',
+  vConn:'🎤 Connecting...', vNotConn:'🎤 Not connected to a friend yet',
+  vCall:'🎤 Calling your friends... everyone tap 🎤 too', vWait:'🎤 You are the last seat — wait for another friend to tap 🎤 first',
+  callOnToast:'📞 Call mode ON! Game sounds are off — your WA call stays crystal clear. Send the game link to your friends and play while you talk!',
+  callOffToast:'📞 Call mode off — game sounds are back on',
+  photoPick:'📸 Pick a photo for player {n}', photoChanged:'✅ {n}\'s photo changed!', photoFail:'⚠️ That image failed to open — try another photo',
+  photoResetDone:'↺ Photos reset to default', chatOnly:'💬 Chat only works in online games',
+  shareMenu:'🎲 Let\'s play LUDO DEVILCUPS with me! Tap this link to play on your phone: ', shareMenu2:' — pawn racing, crashes, loser buys coffee! 😆🏆',
+  shareCode1:'🎲 Let\'s play LUDO DEVILCUPS ONLINE! Open ', shareCode2:' tap PLAY ONLINE → JOIN ROOM → enter code: ', shareCode3:' — we play on 1 board! 🏆',
+  sharePod1:'🏆 I WON at LUDO DEVILCUPS! See my podium here: ', sharePod2:' — dare to challenge me? 🎲'
+}};
+function tt(k){ return (STR[LANG] && STR[LANG][k]) || STR.id[k] || k; }
+function applyNames(){ PLAYERS.forEach((P, i) => { P.name = LANG === 'en' ? NAMES_EN[i] : NAMES_ID[i]; }); }
+function applyLang(){
+  applyNames();
+  const set = (id, k) => { const el = $(id); if(el) el.innerHTML = tt(k); };
+  set('tagline', 'tagline'); set('btnAI', 'playSolo'); set('btnParty', 'playParty'); set('cntLabel', 'cntLabel');
+  set('photoTitle', 'photoTitle'); set('photoReset', 'photoReset'); set('btnWA', 'inviteWA'); set('btnOnline', 'online');
+  set('btnHost', 'host'); set('hostCodeLbl', 'hostCode'); set('btnShareCode', 'shareCodeBtn'); set('btnStartRoom', 'startRoom');
+  set('joinDiv', 'joinDiv'); set('btnJoin', 'join'); set('onlineHelp', 'onlineHelp');
+  set('podTitle', 'podTitle'); set('btnAgain', 'again'); set('btnPodWA', 'shareRes'); set('btnPodHome', 'mainMenu');
+  set('chatSend', 'chatSend');
+  $('joinCode').placeholder = tt('joinPh'); $('chatInput').placeholder = tt('chatPh');
+  $('btnLang').textContent = LANG === 'en' ? '🌐 Language: ENGLISH' : '🌐 Bahasa: INDONESIA';
+  $('callBtn').textContent = callMode ? tt('callOn') : tt('callOff');
+  if($('hostBox').style.display === 'none') $('hostStatus').textContent = tt('preparing');
+  if(!window.ONLINE){ if(isHost && peer) updateLobby(); else $('lobbyList').textContent = tt('playersIn') + '1/4' + tt('lobbyWait'); }
+  if(!G) $('diceLbl').innerHTML = tt('tapDice');
+  renderPhotoRow();
+  if(G) renderAll();
+}
+$('btnLang').addEventListener('click', () => { LANG = LANG === 'en' ? 'id' : 'en'; try { localStorage.setItem('ludo_lang', LANG); } catch(e) {} initAudio(); applyLang(); toast(LANG === 'en' ? '🌐 Language set to English' : '🌐 Bahasa diganti ke Indonesia'); });
+applyLang();
 /* ================= AUTO TEST: 4 bot main sendiri sampai ada pemenang ================= */
 if(new URLSearchParams(location.search).has('auto')){
   window.addEventListener('load', () => setTimeout(() => {
@@ -1128,7 +1236,7 @@ function showPodium(){
   });
   window._podiumShare = ranked.map(pl => PLAYERS[pl].name + ':' + G.pawns.filter(p => p.pl === pl && p.pos === FINISH).length).join(',');
   const row = $('podiumRow'); row.innerHTML = '';
-  const heights = [118, 82, 58], medals = ['#ffd94d', '#e8edf2', '#eda75f'], nums = ['1', '2', '3'];
+  const heights = [118, 82, 58], medalTop = ['#ffe14d', '#ffffff', '#ffb066'], medalBot = ['#e6a800', '#8d9bab', '#c25e10'], nums = ['1', '2', '3'];
   const visual = ranked.length >= 3 ? [ranked[1], ranked[0], ranked[2]] : ranked.slice();
   visual.forEach(pl => {
     const place = ranked.indexOf(pl);
@@ -1138,8 +1246,8 @@ function showPodium(){
     d.innerHTML = (place === 0 ? '<div class="pCrown">👑</div>' : '<div style="height:30px;"></div>')
       + '<div class="pAv" style="width:' + (place === 0 ? 72 : 58) + 'px;height:' + (place === 0 ? 72 : 58) + 'px;border-color:' + P.color + ';"><img src="' + photoFor(pl) + '"></div>'
       + '<div class="pName">' + P.emoji + ' ' + P.name + '</div>'
-      + '<div class="pFin">🏠 ' + fin + '/4 pulang</div>'
-      + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medals[place] + ', ' + medals[place] + 'cc);">' + nums[place] + '</div>';
+      + '<div class="pFin">🏠 ' + fin + '/4' + tt('home') + '</div>'
+      + '<div class="stand" style="height:' + heights[place] + 'px;background:linear-gradient(' + medalTop[place] + ', ' + medalBot[place] + ');box-shadow:inset 0 3px 0 rgba(255,255,255,.65), inset 0 -8px 12px rgba(0,0,0,.25), 0 6px 14px rgba(0,0,0,.45);">' + nums[place] + '</div>';
     row.appendChild(d);
   });
   const rest = $('podiumRest');
@@ -1150,12 +1258,12 @@ function showPodium(){
   } else rest.innerHTML = '';
   $('podiumScr').style.display = 'flex';
 }
-$('btnAgain').addEventListener('click', () => { if(window.ONLINE && !isHost){ toast('⏳ Nunggu host yang pencet MAIN LAGI ya', 2200); return; } $('podiumScr').style.display = 'none'; if(window.ONLINE){ netSend({ t:'again' }); startOnlineGame(); } else startGame(lastHumans); });
+$('btnAgain').addEventListener('click', () => { if(window.ONLINE && !isHost){ toast(tt('waitAgain'), 2200); return; } $('podiumScr').style.display = 'none'; if(window.ONLINE){ netSend({ t:'again' }); startOnlineGame(); } else startGame(lastHumans); });
 $('btnPodHome').addEventListener('click', () => { $('podiumScr').style.display = 'none'; $('gameScr').style.display = 'none'; $('menu').style.display = 'flex'; G = null; });
 $('btnPodWA').addEventListener('click', () => {
   const w = PLAYERS[G.winner];
   const link = GAME_URL + '?podium=1&r=' + encodeURIComponent(window._podiumShare || (w.name + ':4'));
-  const txt = encodeURIComponent('🏆 Aku JUARA di LUDO DEVILCUPS! Lihat podiumku di sini: ' + link + ' — berani lawan aku? 🎲');
+  const txt = encodeURIComponent(tt('sharePod1') + link + tt('sharePod2'));
   window.open('https://wa.me/?text=' + txt, '_blank');
 });
 </script>
