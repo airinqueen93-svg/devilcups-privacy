@@ -129,6 +129,8 @@
   <button id="callBtn">📞 Mode Telponan WA: MATI</button>
   <div class="lionBox"><img class="lionImg" alt="Singa DEVILCUPS"><div class="lionCap">🦁 DEVILCUPS 🦁</div></div>
   <button id="chatBtn" style="display:none;">💬<span id="chatBadge" style="display:none;">0</span></button>
+  <button id="voiceBtn" style="display:none;" title="Ngobrol suara">🎤</button>
+  <audio id="remoteAudio" autoplay playsinline style="display:none;"></audio>
   <div id="chatPanel" style="display:none;">
     <div id="chatHead">💬 Chat Room <button id="chatClose">✖</button></div>
     <div id="chatMsgs"></div>
@@ -671,11 +673,12 @@ let peer = null, netConn = null, isHost = false, unread = 0;
 function netSend(o){ try { if(netConn && netConn.open) netConn.send(o); } catch(e) {} }
 function cleanupNet(){
   window.ONLINE = false;
+  stopVoice(true);
   try { netConn && netConn.close(); } catch(e) {}
   try { peer && peer.destroy(); } catch(e) {}
   netConn = null; peer = null;
   NETPHOTO = null;
-  $('chatBtn').style.display = 'none'; $('chatPanel').style.display = 'none';
+  $('chatBtn').style.display = 'none'; $('chatPanel').style.display = 'none'; $('voiceBtn').style.display = 'none';
 }
 function fixOnlineNames(){
   if(!G) return;
@@ -691,6 +694,7 @@ function startOnlineGame(){
   fixOnlineNames();
   sendMyPhoto();
   $('chatBtn').style.display = 'block';
+  $('voiceBtn').style.display = 'block';
   toast(window.MYIDX === 0 ? '🌐 Terhubung! Kamu MERAH — mulai duluan!' : '🌐 Terhubung! Kamu KUNING — MERAH jalan duluan', 2600);
 }
 function onNetData(m){
@@ -728,6 +732,7 @@ $('btnHost').addEventListener('click', () => {
   $('hostStatus').textContent = '⏳ Menyiapkan room...';
   try {
     peer = new Peer('devilcups-ludo-' + code);
+    wireVoice(peer);
     peer.on('open', () => { $('hostStatus').textContent = '🟢 Room siap! Kasih kode ini ke temanmu, tunggu dia gabung...'; });
     peer.on('connection', c => setupConn(c));
     peer.on('error', e => { $('hostStatus').textContent = '⚠️ Gangguan koneksi (' + e.type + ') — coba BUAT ROOM lagi'; });
@@ -747,10 +752,63 @@ $('btnJoin').addEventListener('click', () => {
   $('netStatus').textContent = '⏳ Nyambung ke room ' + code + '...';
   try {
     peer = new Peer();
+    wireVoice(peer);
     peer.on('open', () => { setupConn(peer.connect('devilcups-ludo-' + code, { reliable: true })); });
     peer.on('error', e => { $('netStatus').textContent = e.type === 'peer-unavailable' ? '⚠️ Room nggak ketemu — cek lagi kodenya, atau temanmu belum bikin room' : '⚠️ Gangguan koneksi (' + e.type + ')'; });
   } catch(e) { $('netStatus').textContent = '⚠️ Gagal nyambung — cek internetmu'; }
 });
+/* ===== NGOBROL SUARA (voice chat PeerJS) ===== */
+let mediaCall = null, localStream = null, pendingCall = null, voiceOn = false;
+function setVoiceUI(on){
+  voiceOn = on;
+  const b = $('voiceBtn');
+  b.textContent = on ? '🔴' : '🎤';
+  b.classList.toggle('live', on);
+  if(on) b.classList.remove('ring');
+}
+function attachCall(call){
+  mediaCall = call;
+  call.on('stream', rs => { const a = $('remoteAudio'); a.srcObject = rs; if(a.play) a.play().catch(() => {}); setVoiceUI(true); });
+  call.on('close', () => {
+    if(mediaCall === call){ mediaCall = null; if(localStream){ try { localStream.getTracks().forEach(t => t.stop()); } catch(e) {} localStream = null; } }
+    setVoiceUI(false);
+  });
+  call.on('error', () => { if(mediaCall === call) mediaCall = null; setVoiceUI(false); });
+}
+function wireVoice(p){
+  p.on('call', call => {
+    if(mediaCall){ try { call.close(); } catch(e) {} return; }
+    attachCall(call);
+    if(localStream){ call.answer(localStream); toast('🎤 Temanmu gabung ngobrol!', 2000); }
+    else { pendingCall = call; $('voiceBtn').classList.add('ring'); toast('🎤 Temanmu ngajak ngobrol! Tap tombol 🎤 hijau buat gabung', 3200); }
+  });
+}
+function stopVoice(silent){
+  try { mediaCall && mediaCall.close(); } catch(e) {}
+  mediaCall = null; pendingCall = null;
+  if(localStream){ try { localStream.getTracks().forEach(t => t.stop()); } catch(e) {} localStream = null; }
+  const a = $('remoteAudio'); if(a) a.srcObject = null;
+  setVoiceUI(false);
+  const b = $('voiceBtn'); if(b) b.classList.remove('ring');
+  if(!silent) toast('🎤 Ngobrol dimatikan', 1500);
+}
+async function toggleVoice(){
+  if(!window.ONLINE) return;
+  initAudio();
+  if(voiceOn || (mediaCall && !pendingCall)){ stopVoice(); return; }
+  try {
+    if(!localStream) localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e){ toast('🎤 Mic-nya belum diizinkan — aktifkan izin mic buat situs ini dulu ya', 3000); return; }
+  $('voiceBtn').classList.remove('ring');
+  if(pendingCall){ const c = pendingCall; pendingCall = null; c.answer(localStream); toast('🎤 Nyambung...', 1500); return; }
+  const remote = netConn && netConn.peer;
+  if(!peer || !remote){ toast('🎤 Belum tersambung ke teman', 2000); return; }
+  const call = peer.call(remote, localStream);
+  if(!call){ toast('🎤 Gagal mulai panggilan suara', 2000); return; }
+  attachCall(call);
+  toast('🎤 Manggil temanmu... tunggu dia tap 🎤 juga', 2200);
+}
+$('voiceBtn').addEventListener('click', toggleVoice);
 /* ===== CHAT ROOM ===== */
 function addChatMsg(who, text, mine){
   const box = $('chatMsgs');
@@ -1082,6 +1140,13 @@ document.querySelectorAll('.lionImg').forEach(im => { im.src = window.LUDO_LION;
   #panel, #hudTop { transform:none; }
   #board { box-shadow:0 0 0 3px #d9b45b, 0 10px 18px rgba(0,0,0,.5); }
   .pawn { box-shadow:0 3px 5px rgba(0,0,0,.45), inset 0 -3px 5px rgba(0,0,0,.3), inset 0 3px 4px rgba(255,255,255,.5); }
+</style>
+<style>
+  /* ===== V21: TOMBOL NGOBROL SUARA ===== */
+  #voiceBtn { position:fixed; right:14px; bottom:84px; z-index:65; width:56px; height:56px; border-radius:50%; border:2.5px solid #ffd94d; background:linear-gradient(#51cf66, #1e9e4a); font-size:24px; cursor:pointer; box-shadow:0 8px 18px rgba(0,0,0,.5); }
+  #voiceBtn.live { background:linear-gradient(#ff6b6b, #c92a2a); }
+  #voiceBtn.ring { animation:vRing .7s ease-in-out infinite; }
+  @keyframes vRing { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.16); } }
 </style>
 </body>
 </html>
