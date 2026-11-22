@@ -473,14 +473,12 @@ function doMove(gi){
   const pw = G.pawns[gi], pl = pw.pl, dice = G.dice;
   G.busy = true; G.movable = []; renderAll();
   let extra = (dice === 6);
+  let pwStart = pw.pos;
   const stepOnce = () => {
-    if(pw.pos === -1){ pw.pos = 0; sHop(); renderAll(); return afterMove(); }
     pw.pos++; sHop(); renderAll();
-    if(pw.pos - (pw.pos - 1) < 0) {}
-    if(stepsLeft > 0) { stepsLeft--; if(stepsLeft >= 0 && pw.pos < pwStart + dice) return setTimeout(stepOnce, 130); }
+    if(pw.pos < pwStart + dice) return setTimeout(stepOnce, 240);
     afterMove();
   };
-  let pwStart = pw.pos, stepsLeft = pw.pos === -1 ? 0 : dice;
   const afterMove = () => {
     /* tabrak lawan */
     let captured = false;
@@ -509,7 +507,7 @@ function doMove(gi){
     else nextTurn();
   };
   if(pw.pos === -1){ pw.pos = 0; sHop(); renderAll(); afterMove(); }
-  else { pw.pos = pwStart + dice; sHop(); renderAll(); afterMove(); }
+  else stepOnce();
 }
 function nextTurn(){
   if(G.over) return;
@@ -807,7 +805,7 @@ if(new URLSearchParams(location.search).has('auto')){
 <style>
   /* ===== TEMA 3D: papan miring berdimensi, pion bola kaca, dadu 3D ===== */
   #gameScr { perspective: 950px; }
-  #boardWrap { transform: rotateX(10deg); transform-origin: 50% 60%; }
+  #boardWrap { transform: none; }
   #board { box-shadow: 0 0 0 3px #6e5410, 0 34px 44px rgba(0,0,0,.65), 0 12px 18px rgba(0,0,0,.5), inset 0 0 24px rgba(0,0,0,.18); }
   .pawn { box-shadow: 0 7px 9px rgba(0,0,0,.55), inset 0 -6px 9px rgba(0,0,0,.38), inset 0 5px 7px rgba(255,255,255,.7); }
   .pawn:before { content:''; position:absolute; left:16%; top:9%; width:42%; height:30%; border-radius:50%;
@@ -833,7 +831,7 @@ if(new URLSearchParams(location.search).has('auto')){
     animation:rise linear infinite; opacity:.75; }
   @keyframes rise { to { transform:translateY(-108vh) translateX(24px); opacity:0; } }
   #gameScr { perspective:820px; position:relative; z-index:2; }
-  #boardWrap { transform:rotateX(15deg); }
+  #boardWrap { transform:none; }
   #board { border-width:7px; box-shadow:0 0 0 3px #6e5410, 0 0 0 6px #2e230a, 0 44px 54px rgba(0,0,0,.75), 0 16px 22px rgba(0,0,0,.55), inset 0 0 24px rgba(0,0,0,.2); }
   #boardWrap:after { content:''; position:absolute; inset:0; border-radius:10px; pointer-events:none; z-index:9;
     background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.16) 46%, rgba(255,255,255,.03) 52%, transparent 62%);
@@ -894,6 +892,13 @@ function startMusic(){
 }
 const _initAudio2 = initAudio;
 initAudio = function(){ _initAudio2(); startMusic(); };
+/* suara berhenti total saat keluar/pindah aplikasi (permintaan Balung 22 Nov) */
+function ludoAudioSleep(){ try { if(AC && AC.state === 'running') AC.suspend(); } catch(e){} }
+function ludoAudioWake(){ try { if(AC && AC.state === 'suspended' && sndOn) AC.resume(); } catch(e){} }
+document.addEventListener('visibilitychange', () => { if(document.hidden) ludoAudioSleep(); else ludoAudioWake(); });
+document.addEventListener('pause', ludoAudioSleep);
+window.addEventListener('pagehide', ludoAudioSleep);
+window.addEventListener('blur', ludoAudioSleep);
 </script>
 <style>
   /* ===== V3: GAYA LUDO KING — kayu hangat, koin mahkota, sudut pemain ===== */
@@ -917,12 +922,12 @@ initAudio = function(){ _initAudio2(); startMusic(); };
   .corner.turn .avatar { box-shadow:0 0 0 3px #ffd93b, 0 0 20px #ffd93b, 0 5px 11px rgba(0,0,0,.5); animation:bobA 0.8s ease-in-out infinite; }
   .corner.turn .plate { background:linear-gradient(#b9832f, #8a5f14); color:#fff; }
   @keyframes bobA { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-4px);} }
-  #diceTray { position:absolute; left:50%; bottom:-19px; transform:translateX(-50%); z-index:13; width:58px; height:58px; border-radius:50%;
-    background:radial-gradient(circle at 50% 36%, #b9834a, #7a4d20 72%, #5d3a16); border:3.5px solid #d9b45b;
-    box-shadow:0 12px 22px rgba(0,0,0,.55), inset 0 5px 9px rgba(255,255,255,.3), inset 0 -10px 14px rgba(0,0,0,.45);
+  #diceTray { position:absolute; left:50%; bottom:-48px; transform:translateX(-50%); z-index:13; width:42px; height:42px; border-radius:50%;
+    background:radial-gradient(circle at 50% 36%, #b9834a, #7a4d20 72%, #5d3a16); border:3px solid #d9b45b;
+    box-shadow:0 8px 14px rgba(0,0,0,.5), inset 0 4px 7px rgba(255,255,255,.3), inset 0 -7px 10px rgba(0,0,0,.45);
     display:flex; align-items:center; justify-content:center; }
-  #diceTray #dice { width:34px; height:34px; }
-  #diceLbl { margin-top:52px; width:min(96vw, 470px); text-align:center; font-weight:900; font-size:14.5px; color:#fff3d6;
+  #diceTray #dice { width:30px; height:30px; }
+  #diceLbl { margin-top:60px; width:min(96vw, 470px); text-align:center; font-weight:900; font-size:14.5px; color:#fff3d6;
     text-shadow:0 2px 4px rgba(0,0,0,.6); line-height:1.45; }
   .pawn { border:3px solid rgba(110,66,0,.6); box-shadow:inset 0 0 0 3px rgba(255,215,64,.7), inset 0 -5px 8px rgba(0,0,0,.35), inset 0 5px 7px rgba(255,255,255,.6), 0 6px 10px rgba(0,0,0,.5); text-shadow:0 1px 2px rgba(0,0,0,.35); }
   #sparks { z-index:0; }
@@ -932,12 +937,12 @@ initAudio = function(){ _initAudio2(); startMusic(); };
   /* ===== V4: DADU KUBUS 3D ===== */
   #dice { background:none !important; box-shadow:none !important; padding:0; display:flex; align-items:center; justify-content:center; perspective:340px; transform:none; }
   #dice:active { transform:none; }
-  #cube { width:32px; height:32px; position:relative; transform-style:preserve-3d; transition:transform .16s ease; }
-  #cube .face { position:absolute; inset:0; border-radius:9px; box-sizing:border-box; padding:7px;
+  #cube { width:24px; height:24px; position:relative; transform-style:preserve-3d; transition:transform .16s ease; }
+  #cube .face { position:absolute; inset:0; border-radius:7px; box-sizing:border-box; padding:5px;
     background:linear-gradient(145deg, #ffffff, #d9dfe8 75%); border:2px solid #aeb7c4;
     box-shadow:inset 0 0 9px rgba(0,0,0,.14); display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(3, 1fr); backface-visibility:hidden; }
   #cube .pip { display:flex; align-items:center; justify-content:center; }
-  #cube .pip i { width:5px; height:5px; border-radius:50%; background:#26324a; display:block; box-shadow:inset 0 -1px 2px rgba(0,0,0,.5); }
+  #cube .pip i { width:4px; height:4px; border-radius:50%; background:#26324a; display:block; box-shadow:inset 0 -1px 2px rgba(0,0,0,.5); }
   #dice.rolling #cube { animation:cubeShake .1s linear infinite; }
   @keyframes cubeShake { 0%{ margin-top:0; } 50%{ margin-top:-4px; } 100%{ margin-top:0; } }
 </style>
@@ -949,12 +954,12 @@ initAudio = function(){ _initAudio2(); startMusic(); };
   dice.innerHTML = '';
   const cube = document.createElement('div'); cube.id = 'cube';
   const faces = [
-    { v:1, t:'rotateX(90deg) translateZ(16px)' },
-    { v:6, t:'rotateX(-90deg) translateZ(16px)' },
-    { v:2, t:'rotateY(0deg) translateZ(16px)' },
-    { v:5, t:'rotateY(180deg) translateZ(16px)' },
-    { v:3, t:'rotateY(90deg) translateZ(16px)' },
-    { v:4, t:'rotateY(-90deg) translateZ(16px)' },
+    { v:1, t:'rotateX(90deg) translateZ(12px)' },
+    { v:6, t:'rotateX(-90deg) translateZ(12px)' },
+    { v:2, t:'rotateY(0deg) translateZ(12px)' },
+    { v:5, t:'rotateY(180deg) translateZ(12px)' },
+    { v:3, t:'rotateY(90deg) translateZ(12px)' },
+    { v:4, t:'rotateY(-90deg) translateZ(12px)' },
   ];
   for(const f of faces){
     const d = document.createElement('div'); d.className = 'face'; d.style.transform = f.t;
