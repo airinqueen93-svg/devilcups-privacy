@@ -367,10 +367,11 @@ function renderPlayers(){
   else plaque.innerHTML = '👑 Mode: Classic 👑';
 }
 const DICE_PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
-const CUBE_R = { 1:'rotateX(0deg) rotateY(0deg)', 2:'rotateX(-90deg)', 3:'rotateZ(90deg)', 4:'rotateZ(-90deg)', 5:'rotateX(90deg)', 6:'rotateX(180deg)' };
 function drawDice(v){
-  const c = $('cube'); if(!c) return;
-  c.style.transform = 'rotateX(-24deg) rotateY(32deg) ' + CUBE_R[v];
+  const d = $('dice'); if(!d) return;
+  let h = '';
+  for(let i = 0; i < 9; i++) h += '<span class="pip">' + (DICE_PIPS[v].includes(i) ? '<i></i>' : '') + '</span>';
+  d.innerHTML = h;
 }
 
 /* ================= SUARA ================= */
@@ -386,7 +387,20 @@ function beep(f0, f1, dur, vol, type){
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
   o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + dur + .02);
 }
-function sDice(){ for(let i = 0; i < 4; i++) setTimeout(() => beep(rnd(300, 700), 150, .04, .1, 'square'), i * 55); }
+let noiseBuf = null;
+function diceClack(t, vol){
+  if(!noiseBuf){ noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * .06), AC.sampleRate); const d = noiseBuf.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length); }
+  const src = AC.createBufferSource(); src.buffer = noiseBuf;
+  const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = rnd(1600, 3200); f.Q.value = 1.1;
+  const g = AC.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .06);
+  src.connect(f); f.connect(g); g.connect(masterGain); src.start(t);
+}
+function sDice(){
+  if(!AC || !sndOn) return;
+  let t = AC.currentTime + .01;
+  for(let i = 0; i < 9; i++){ diceClack(t, rnd(.35, .6)); t += rnd(.035, .07); }
+  diceClack(t + .03, .7);
+}
 function sHop(){ beep(500, 760, .06, .09, 'sine'); }
 function sCapture(){ beep(420, 60, .3, .22, 'sawtooth'); setTimeout(() => beep(180, 40, .25, .18, 'square'), 60); }
 function sHome(){ [660, 830, 990].forEach((f, i) => setTimeout(() => beep(f, f, .13, .13, 'sine'), i * 85)); }
@@ -948,31 +962,8 @@ window.addEventListener('blur', ludoAudioSleep);
 </style>
 <script>
 'use strict';
-/* bangun kubus dadu 3D: atas=1 depan=2 kanan=3 kiri=4 belakang=5 bawah=6 */
-(function(){
-  const dice = document.getElementById('dice');
-  dice.innerHTML = '';
-  const cube = document.createElement('div'); cube.id = 'cube';
-  const faces = [
-    { v:1, t:'rotateX(90deg) translateZ(12px)' },
-    { v:6, t:'rotateX(-90deg) translateZ(12px)' },
-    { v:2, t:'rotateY(0deg) translateZ(12px)' },
-    { v:5, t:'rotateY(180deg) translateZ(12px)' },
-    { v:3, t:'rotateY(90deg) translateZ(12px)' },
-    { v:4, t:'rotateY(-90deg) translateZ(12px)' },
-  ];
-  for(const f of faces){
-    const d = document.createElement('div'); d.className = 'face'; d.style.transform = f.t;
-    for(let i = 0; i < 9; i++){
-      const s = document.createElement('div'); s.className = 'pip';
-      if(DICE_PIPS[f.v].includes(i)) s.innerHTML = '<i></i>';
-      d.appendChild(s);
-    }
-    cube.appendChild(d);
-  }
-  dice.appendChild(cube);
-  drawDice(6);
-})();
+/* dadu padat kecil (v20): gambar muka awal */
+drawDice(6);
 </script>
 <style>
   /* ===== PODIUM JUARA ===== */
@@ -1078,5 +1069,19 @@ document.querySelectorAll('.lionImg').forEach(im => { im.src = window.LUDO_LION;
   #chatSend { padding:10px 16px; border-radius:11px; border:none; background:linear-gradient(#51cf66,#1e9e4a); color:#fff; font-weight:900; cursor:pointer; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+  /* ===== V20: DADU PADET KECIL + MODE RINGAN (permintaan Balung 22 Nov) ===== */
+  #dice { background:linear-gradient(145deg, #ffffff, #dde3ec) !important; box-shadow:0 3px 6px rgba(0,0,0,.45), inset 0 0 0 2px #aeb7c4, inset 0 -3px 5px rgba(0,0,0,.15) !important;
+    border-radius:8px; padding:4px; display:grid !important; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(3, 1fr);
+    perspective:none; transform:none; box-sizing:border-box; cursor:pointer; }
+  #dice .pip { display:flex; align-items:center; justify-content:center; }
+  #dice .pip i { width:5px; height:5px; border-radius:50%; background:#26324a; display:block; }
+  #dice.rolling { animation:diceShake .07s linear infinite; }
+  @keyframes diceShake { 0%{ transform:rotate(-9deg) translateY(0); } 50%{ transform:rotate(8deg) translateY(-2px); } 100%{ transform:rotate(-6deg) translateY(0); } }
+  #gameScr { perspective:none; }
+  #panel, #hudTop { transform:none; }
+  #board { box-shadow:0 0 0 3px #d9b45b, 0 10px 18px rgba(0,0,0,.5); }
+  .pawn { box-shadow:0 3px 5px rgba(0,0,0,.45), inset 0 -3px 5px rgba(0,0,0,.3), inset 0 3px 4px rgba(255,255,255,.5); }
+</style>
 </body>
 </html>
